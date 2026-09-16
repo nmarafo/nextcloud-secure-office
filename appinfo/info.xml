@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>secure_office</id>
+    <name>Secure Office</name>
+    <summary>Secure Office integration for Nextcloud</summary>
+    <description>Plugin Nextcloud Secure Office</description>
+    <version>0.1.0</version>
+    <licence>agpl</licence>
+    <author>Norberto Martín Afonso</author>
+    <namespace>SecureOffice</namespace>
+    <category>office</category>
+    <dependencies>
+        <nextcloud min-version="33" max-version="33" />
+    </dependencies>
+    <navigation>
+        <name>Secure Office</name>
+        <route>secure_office.page.index</route>
+    </navigation>
+</info>
