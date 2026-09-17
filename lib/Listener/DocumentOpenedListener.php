@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\SecureOffice\Listener;
 
 use OCA\Richdocuments\Events\DocumentOpenedEvent;
+use OCA\SecureOffice\Service\AuditService;
 use OCA\SecureOffice\Service\SecurityConfigService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -20,6 +21,7 @@ use Psr\Log\LoggerInterface;
 class DocumentOpenedListener implements IEventListener {
     public function __construct(
         private SecurityConfigService $configService,
+        private AuditService $auditService,
         private IRequest $request,
         private LoggerInterface $logger,
     ) {
@@ -33,6 +35,31 @@ class DocumentOpenedListener implements IEventListener {
         $userId = $event->getUserId() ?? 'anonymous';
         $node = $event->getNode();
         $remoteIp = $this->request->getRemoteAddress();
+        $classification = $this->configService->getEnsClassification();
+        $dlpExport = $this->configService->isExportDisabled();
+        $dlpCopy = $this->configService->isCopyDisabled();
+        $dlpPrint = $this->configService->isPrintDisabled();
+
+        // 1. Persist audit record to database
+        try {
+            $this->auditService->recordAccess(
+                $userId,
+                $remoteIp,
+                (int)$node->getId(),
+                $node->getName(),
+                $node->getPath(),
+                $classification,
+                $dlpExport,
+                $dlpCopy,
+                $dlpPrint,
+            );
+        } catch (\Throwable $e) {
+            $this->logger->error('Secure Office: Failed to write database audit entry: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+        }
+
+        // 2. Log to PSR-3 Nextcloud security log
 
         $this->logger->info(
             'ENS AUDIT [mp.info.2]: Collaborative document opened by user {userId} from {remoteIp}. File: {filePath} (ID: {fileId}, Classification: {classification})',

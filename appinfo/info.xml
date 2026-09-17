@@ -5,7 +5,7 @@
     <name>Secure Office</name>
     <summary>Nextcloud Secure Office - Forensic Watermarking and DLP for Collabora</summary>
     <description>Nextcloud Secure Office provides enterprise-grade document security, dynamic forensic watermarking, and Data Loss Prevention (DLP) controls for Nextcloud Office (Collabora Online), aligned with the Spanish National Security Framework (ENS - RD 311/2022).</description>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
@@ -17,4 +17,10 @@
         <name>Secure Office</name>
         <route>secure_office.page.index</route>
     </navigation>
+    <commands>
+        <command>OCA\SecureOffice\Command\EnsAuditCommand</command>
+    </commands>
+    <settings>
+        <admin>OCA\SecureOffice\Settings\AdminSettings</admin>
+    </settings>
 </info>
