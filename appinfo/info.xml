@@ -3,11 +3,11 @@
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>secure_office</id>
     <name>Secure Office</name>
-    <summary>Secure Office integration for Nextcloud</summary>
-    <description>Plugin Nextcloud Secure Office</description>
+    <summary>Nextcloud Secure Office - Forensic Watermarking and DLP for Collabora</summary>
+    <description>Nextcloud Secure Office provides enterprise-grade document security, dynamic forensic watermarking, and Data Loss Prevention (DLP) controls for Nextcloud Office (Collabora Online), aligned with the Spanish National Security Framework (ENS - RD 311/2022).</description>
     <version>0.1.0</version>
     <licence>agpl</licence>
-    <author>Norberto Martín Afonso</author>
+    <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
     <category>office</category>
     <dependencies>
