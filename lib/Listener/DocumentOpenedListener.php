@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\SecureOffice\Listener;
+
+use OCA\Richdocuments\Events\DocumentOpenedEvent;
+use OCA\SecureOffice\Service\SecurityConfigService;
+use OCP\EventDispatcher\Event;
+use OCP\EventDispatcher\IEventListener;
+use OCP\IRequest;
+use Psr\Log\LoggerInterface;
+
+/**
+ * Audit listener for collaborative document access under Spanish ENS (RD 311/2022).
+ * Fulfills measure [mp.info.2] activity registration and non-repudiation traceability.
+ *
+ * @template-implements IEventListener<DocumentOpenedEvent|Event>
+ */
+class DocumentOpenedListener implements IEventListener {
+    public function __construct(
+        private SecurityConfigService $configService,
+        private IRequest $request,
+        private LoggerInterface $logger,
+    ) {
+    }
+
+    public function handle(Event $event): void {
+        if (!($event instanceof DocumentOpenedEvent)) {
+            return;
+        }
+
+        $userId = $event->getUserId() ?? 'anonymous';
+        $node = $event->getNode();
+        $remoteIp = $this->request->getRemoteAddress();
+
+        $this->logger->info(
+            'ENS AUDIT [mp.info.2]: Collaborative document opened by user {userId} from {remoteIp}. File: {filePath} (ID: {fileId}, Classification: {classification})',
+            [
+                'app' => SecurityConfigService::APP_ID,
+                'event' => 'ENS_DOCUMENT_OPENED',
+                'userId' => $userId,
+                'remoteIp' => $remoteIp,
+                'fileId' => $node->getId(),
+                'fileName' => $node->getName(),
+                'filePath' => $node->getPath(),
+                'fileSize' => $node->getSize(),
+                'mimeType' => $node->getMimetype(),
+                'classification' => $this->configService->getEnsClassification(),
+                'dlp_export_disabled' => $this->configService->isExportDisabled(),
+                'dlp_copy_disabled' => $this->configService->isCopyDisabled(),
+                'dlp_print_disabled' => $this->configService->isPrintDisabled(),
+                'timestamp' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM),
+            ]
+        );
+    }
+}
