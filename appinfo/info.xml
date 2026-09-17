@@ -3,13 +3,26 @@
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>secure_office</id>
     <name>Secure Office</name>
-    <summary>Nextcloud Secure Office - Forensic Watermarking and DLP for Collabora</summary>
-    <description>Nextcloud Secure Office provides enterprise-grade document security, dynamic forensic watermarking, and Data Loss Prevention (DLP) controls for Nextcloud Office (Collabora Online), aligned with the Spanish National Security Framework (ENS - RD 311/2022).</description>
+    <summary>Forensic Watermarking, DLP, and ENS Compliance for Nextcloud Office</summary>
+    <description><![CDATA[Nextcloud Secure Office is an enterprise security extension designed for environments requiring high-assurance data protection, forensic traceability, and Data Loss Prevention (DLP) across collaborative office documents in Nextcloud Office (Collabora Online / CODE).
+
+Key Features:
+- Dynamic Forensic Watermarking: Injects real-time indelible background watermarks displaying user identity, client IP, access timestamp, and classification tags.
+- Data Loss Prevention (DLP): Prevents unauthorized document exfiltration by disabling export/downloads (DisableExport), clipboard copy/paste (DisableCopy), and document printing (DisablePrint).
+- Storage Encryption Compatibility (ENS [mp.info.3]): Full compatibility with Nextcloud Server-Side Encryption (SSE) with Master Key mode (AES-256-CTR).
+- Immutable Audit Trail (ENS [mp.info.2]): Logs every document access to a dedicated database audit table with direct CSV export.
+- Continuous Compliance Engine & CLI: Features a diagnostic dashboard in Administration Settings and terminal auditor (occ secure_office:ens-audit).
+
+Specifically architected to assist public administrations and regulated entities with the Spanish Esquema Nacional de Seguridad (ENS - Real Decreto 311/2022).]]></description>
     <version>0.2.0</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
     <category>office</category>
+    <category>security</category>
+    <website>https://github.com/nmarafo/nextcloud-secure-office</website>
+    <bugs>https://github.com/nmarafo/nextcloud-secure-office/issues</bugs>
+    <repository type="git">https://github.com/nmarafo/nextcloud-secure-office.git</repository>
     <dependencies>
         <nextcloud min-version="33" max-version="33" />
     </dependencies>

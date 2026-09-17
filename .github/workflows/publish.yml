@@ -1,0 +1,26 @@
+name: Nextcloud App Store Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, iconv, json
+
+      - name: Build and Publish to Nextcloud App Store
+        uses: nextcloud/appstore-build-publish@v1.4.3
+        with:
+          app_name: secure_office
+          appstore_token: ${{ secrets.APPSTORE_TOKEN }}
+          app_private_key: ${{ secrets.APP_PRIVATE_KEY }}

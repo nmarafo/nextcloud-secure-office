@@ -13,3 +13,9 @@ Thumbs.db
 .vscode/
 *.swp
 *~
+
+# Certificates and Signing Keys (CRITICAL: Do NOT commit private keys)
+*.key
+*.crt
+/certificates/
+*.tar.gz
