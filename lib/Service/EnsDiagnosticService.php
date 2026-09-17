@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\SecureOffice\Service;
 
-use OCP\Encryption\IEncryptionManager;
+use OCP\Encryption\IManager;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\Server;
@@ -15,6 +15,7 @@ class EnsDiagnosticService {
         private AuditService $auditService,
         private IConfig $config,
         private IRequest $request,
+        private IManager $encryptionManager,
     ) {
     }
 
@@ -26,7 +27,7 @@ class EnsDiagnosticService {
 
         $allOk = $traceability['status'] === 'ok'
             && $storageEncryption['status'] === 'ok'
-            && $channelProtection['status'] === 'ok'
+            && ($channelProtection['status'] === 'ok' || $channelProtection['status'] === 'info')
             && $dlpProtection['status'] === 'ok';
 
         $partialOk = $traceability['status'] === 'ok' && $dlpProtection['status'] === 'ok';
@@ -73,37 +74,47 @@ class EnsDiagnosticService {
     }
 
     private function checkStorageEncryption(): array {
-        $encryptionEnabled = false;
+        $encryptionEnabled = $this->encryptionManager->isEnabled();
+        $defaultModule = (string)$this->encryptionManager->getDefaultEncryptionModuleId();
         $masterKeyEnabled = false;
 
-        try {
-            $encryptionManager = Server::get(IEncryptionManager::class);
-            $encryptionEnabled = $encryptionManager->isEnabled();
-
-            if ($encryptionEnabled && class_exists('\OCA\Encryption\Util')) {
+        $useMasterKey = $this->config->getAppValue('encryption', 'useMasterKey', '0');
+        if ($useMasterKey === '1' || $useMasterKey === 'yes' || $useMasterKey === true) {
+            $masterKeyEnabled = true;
+        } elseif (class_exists('\OCA\Encryption\Util')) {
+            try {
                 $util = Server::get('\OCA\Encryption\Util');
                 $masterKeyEnabled = $util->isMasterKeyEnabled();
+            } catch (\Throwable) {
             }
-        } catch (\Throwable) {
         }
 
         if ($encryptionEnabled && $masterKeyEnabled) {
+            $cipher = ($defaultModule === 'OC_DEFAULT_MODULE') ? 'AES-256-CTR' : 'Cifrado robusto';
             return [
                 'code' => 'mp.info.3',
                 'title' => 'Protección criptográfica de la información almacenada (en reposo)',
                 'status' => 'ok',
-                'details' => 'Cifrado de servidor (SSE) activo con clave maestra (AES-256).',
+                'details' => "Cifrado en reposo activo con Clave Maestra ($cipher). Módulo: $defaultModule.",
                 'recommendation' => null,
+            ];
+        }
+
+        if ($encryptionEnabled && !$masterKeyEnabled) {
+            return [
+                'code' => 'mp.info.3',
+                'title' => 'Protección criptográfica de la información almacenada (en reposo)',
+                'status' => 'warning',
+                'details' => 'El cifrado de servidor está activo pero requiere modo de clave maestra para Collabora Online.',
+                'recommendation' => 'Habilitar clave maestra: php occ encryption:enable-master-key',
             ];
         }
 
         return [
             'code' => 'mp.info.3',
             'title' => 'Protección criptográfica de la información almacenada (en reposo)',
-            'status' => 'warning',
-            'details' => $encryptionEnabled
-                ? 'El cifrado de servidor está activo pero requiere modo de clave maestra para Collabora Online.'
-                : 'El cifrado de almacenamiento en servidor está desactivado.',
+            'status' => 'error',
+            'details' => 'El cifrado de almacenamiento en servidor está desactivado.',
             'recommendation' => 'Habilitar mediante: php occ app:enable encryption && php occ encryption:enable && php occ encryption:enable-master-key',
         ];
     }
