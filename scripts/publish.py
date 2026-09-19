@@ -10,6 +10,7 @@ import base64
 import hashlib
 import tarfile
 import requests
+import xml.etree.ElementTree as ET
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
@@ -17,7 +18,14 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 def main():
     print("=== Nextcloud Secure Office - Release Publisher ===")
     
-    # 1. Resolve private key
+    # 1. Resolve version from info.xml
+    info_tree = ET.parse("appinfo/info.xml")
+    version = info_tree.find("version").text.strip()
+    tag = f"v{version}"
+    repo = os.environ.get("GITHUB_REPOSITORY", "nmarafo/nextcloud-secure-office")
+    print(f"Target app version: {version} (tag: {tag}) in repo: {repo}")
+
+    # 2. Resolve private key
     private_key_pem = os.environ.get("APP_PRIVATE_KEY")
     if not private_key_pem:
         for candidate in ["certificates/secure_office.key", "../../certificates/secure_office.key", "../certificates/secure_office.key"]:
@@ -32,7 +40,7 @@ def main():
 
     pkey = load_pem_private_key(private_key_pem.encode("utf-8"), password=None)
 
-    # 2. Resolve certificate
+    # 3. Resolve certificate
     cert_text = None
     for candidate in ["certificates/secure_office.crt", "../../certificates/secure_office.crt", "../certificates/secure_office.crt"]:
         if os.path.exists(candidate):
@@ -44,7 +52,7 @@ def main():
         with open("appinfo/signature.json", "r") as f:
             cert_text = json.load(f).get("certificate")
 
-    # 3. Hash files and create code integrity signature.json
+    # 4. Hash files and create code integrity signature.json
     file_hashes = {}
     for root, dirs, files in os.walk("."):
         if any(x in root for x in [".git", ".github", "screenshots", "scripts", "certificates", "video_assets"]):
@@ -76,9 +84,9 @@ def main():
     os.makedirs("appinfo", exist_ok=True)
     with open("appinfo/signature.json", "w") as f:
         json.dump(sig_data, f, indent=4)
-    print(f"appinfo/signature.json generated with {len(sorted_hashes)} files.")
+    print(f"appinfo/signature.json updated with {len(sorted_hashes)} files.")
 
-    # 4. Create release tarball
+    # 5. Create release tarball
     tar_path = "secure_office.tar.gz"
     if os.path.exists(tar_path):
         os.remove(tar_path)
@@ -99,7 +107,7 @@ def main():
 
     print(f"Release archive built: {tar_path} ({os.path.getsize(tar_path)} bytes)")
 
-    # 5. Sign tar.gz
+    # 6. Sign tar.gz (RSA PKCS#1 v1.5 with SHA512)
     with open(tar_path, "rb") as f:
         tar_bytes = f.read()
 
@@ -107,12 +115,49 @@ def main():
     tar_sig_b64 = base64.b64encode(tar_sig).decode("ascii").strip()
     print("Archive signature generated successfully.")
 
-    # 6. Publish to Nextcloud App Store
-    token = os.environ.get("APPSTORE_TOKEN")
-    tag = os.environ.get("GITHUB_REF_NAME", "v0.2.3")
-    repo = os.environ.get("GITHUB_REPOSITORY", "nmarafo/nextcloud-secure-office")
+    # 7. Upload to GitHub Release if GITHUB_TOKEN is set
+    gh_token = os.environ.get("GITHUB_TOKEN")
     download_url = f"https://github.com/{repo}/releases/download/{tag}/secure_office.tar.gz"
 
+    if gh_token:
+        print(f"Managing GitHub release for {tag}...")
+        gh_headers = {
+            "Authorization": f"Bearer {gh_token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28"
+        }
+        rel_res = requests.get(f"https://api.github.com/repos/{repo}/releases/tags/{tag}", headers=gh_headers)
+        if rel_res.status_code == 200:
+            rel_data = rel_res.json()
+        else:
+            create_payload = {
+                "tag_name": tag,
+                "name": f"{tag} - Secure Office",
+                "body": f"Release of Nextcloud Secure Office version {version}.",
+                "draft": False,
+                "prerelease": False
+            }
+            create_r = requests.post(f"https://api.github.com/repos/{repo}/releases", headers=gh_headers, json=create_payload)
+            rel_data = create_r.json()
+
+        # Delete previous asset if exists, then upload new asset
+        upload_url = rel_data.get("upload_url", "").replace("{?name,label}", "?name=secure_office.tar.gz")
+        for asset in rel_data.get("assets", []):
+            if asset.get("name") == "secure_office.tar.gz":
+                requests.delete(f"https://api.github.com/repos/{repo}/releases/assets/{asset['id']}", headers=gh_headers)
+                break
+
+        if upload_url:
+            with open(tar_path, "rb") as tf:
+                up_headers = {
+                    "Authorization": f"Bearer {gh_token}",
+                    "Content-Type": "application/gzip"
+                }
+                up_res = requests.post(upload_url, headers=up_headers, data=tf.read())
+                print(f"GitHub Release asset upload status: HTTP {up_res.status_code}")
+
+    # 8. Publish to Nextcloud App Store
+    token = os.environ.get("APPSTORE_TOKEN")
     if token:
         print(f"Publishing release to Nextcloud App Store (Download: {download_url})...")
         headers = {
@@ -131,7 +176,7 @@ def main():
         else:
             print(f"Response body: {res.text}")
             if "already exists" in res.text.lower():
-                print("Notice: Release already registered in App Store.")
+                print("Release is already up-to-date in Nextcloud App Store.")
             else:
                 sys.exit(1)
     else:
