@@ -188,6 +188,50 @@ custom_apps/secure_office/
 
 ---
 
+## Production Deployment Considerations (ENS [mp.info.4] Compliance)
+
+To achieve full compliance in production environments, particularly for communication channel protection (ENS Measure **`[mp.info.4]`** - Tránsito Seguro):
+
+1. **Mandatory HTTPS & TLS Hardening:**
+   - Deploy Nextcloud and Collabora Online behind a hardened reverse proxy (e.g. Nginx, Traefik, Apache, or Caddy) equipped with trusted TLS/SSL certificates (e.g., Let's Encrypt or institutional PKI).
+   - Enforce TLS 1.2 or TLS 1.3 with forward secrecy cipher suites.
+
+2. **Nextcloud Protocol Enforcement (`config/config.php`):**
+   Ensure Nextcloud enforces HTTPS across all generated URLs, webhooks, and CLI operations:
+   ```php
+   'overwriteprotocol' => 'https',
+   'overwrite.cli.url' => 'https://nextcloud.yourdomain.com',
+   ```
+
+3. **HTTP Strict Transport Security (HSTS):**
+   Configure your reverse proxy to send the HSTS header:
+   ```nginx
+   add_header Strict-Transport-Security "max-age=15552000; includeSubDomains; preload" always;
+   ```
+
+4. **Secure Collabora WOPI Communication:**
+   Configure Nextcloud Office (`richdocuments`) to communicate with Collabora exclusively over HTTPS:
+   ```bash
+   php occ config:app:set richdocuments wopi_url --value="https://collabora.yourdomain.com"
+   ```
+   This guarantees that all in-flight documents and WOPI authentication tokens travel exclusively across encrypted channels.
+
+5. **At-Rest Encryption Activation (ENS `[mp.info.3]`):**
+   ```bash
+   php occ app:enable encryption
+   php occ encryption:enable-master-key
+   php occ encryption:enable
+   php occ encryption:encrypt-all
+   ```
+
+6. **Continuous Compliance Verification:**
+   Verify your global compliance status at any time with the built-in terminal auditor:
+   ```bash
+   php occ secure_office:ens-audit
+   ```
+
+---
+
 ## Disclaimer / Descargo de Responsabilidad
 
 > [!IMPORTANT]
