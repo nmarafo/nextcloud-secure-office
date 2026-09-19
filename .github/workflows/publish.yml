@@ -4,23 +4,27 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          php-version: '8.2'
-          extensions: mbstring, iconv, json
+          python-version: '3.11'
 
-      - name: Build and Publish to Nextcloud App Store
-        uses: nextcloud/appstore-build-publish@v1.4.3
-        with:
-          app_name: secure_office
-          appstore_token: ${{ secrets.APPSTORE_TOKEN }}
-          app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Install dependencies
+        run: pip install cryptography requests
+
+      - name: Build, Sign & Release to Nextcloud App Store
+        env:
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+          APPSTORE_TOKEN: ${{ secrets.APPSTORE_TOKEN }}
+        run: python scripts/publish.py
