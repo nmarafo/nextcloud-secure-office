@@ -14,7 +14,7 @@ Key Features:
 - Continuous Compliance Engine & CLI: Features a diagnostic dashboard in Administration Settings and terminal auditor (occ secure_office:ens-audit).
 
 Specifically architected to assist public administrations and regulated entities with the Spanish Esquema Nacional de Seguridad (ENS - Real Decreto 311/2022).]]></description>
-    <version>0.2.2</version>
+    <version>0.2.3</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
@@ -23,7 +23,6 @@ Specifically architected to assist public administrations and regulated entities
     <website>https://github.com/nmarafo/nextcloud-secure-office</website>
     <bugs>https://github.com/nmarafo/nextcloud-secure-office/issues</bugs>
     <repository type="git">https://github.com/nmarafo/nextcloud-secure-office.git</repository>
-    <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/00_secure_office_logo.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/01_collabora_forensic_watermark.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/02_admin_ens_cards.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/03_admin_dlp_settings.png</screenshot>
