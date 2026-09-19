@@ -69,10 +69,12 @@ def main():
     sorted_hashes = dict(sorted(file_hashes.items()))
     php_json = json.dumps(sorted_hashes, separators=(",", ":")).replace("/", r"\/")
 
+    # Nextcloud's Checker.php uses phpseclib RSA with setMGFHash('sha512') and setSaltLength(0),
+    # but does not set setHash(), leaving phpseclib's default message hash as SHA-1.
     code_sig = pkey.sign(
         php_json.encode("utf-8"),
         padding.PSS(mgf=padding.MGF1(hashes.SHA512()), salt_length=0),
-        hashes.SHA512()
+        hashes.SHA1()
     )
 
     sig_data = {

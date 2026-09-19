@@ -14,7 +14,7 @@ Key Features:
 - Continuous Compliance Engine & CLI: Features a diagnostic dashboard in Administration Settings and terminal auditor (occ secure_office:ens-audit).
 
 Specifically architected to assist public administrations and regulated entities with the Spanish Esquema Nacional de Seguridad (ENS - Real Decreto 311/2022).]]></description>
-    <version>0.2.3</version>
+    <version>0.2.4</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
