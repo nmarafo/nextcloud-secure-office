@@ -8,21 +8,22 @@
 [![Nextcloud](https://img.shields.io/badge/Nextcloud-33%2B-0082c9.svg)](https://nextcloud.com/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Compliance](https://img.shields.io/badge/Compliance-ENS%20(RD%20311%2F2022)%20Alto-green.svg)](https://www.ccn-cert.cni.es/ens.html)
+[![CCN-STIC Guide](https://img.shields.io/badge/CCN--STIC-826%20Nextcloud-0082c9.svg)](https://www.ccn-cert.cni.es/es/800-guia-esquema-nacional-de-seguridad/4229-ccn-stic-826-implementacion-de-seguridad-nextcloud/file.html)
 
 **Nextcloud Secure Office** is an enterprise-grade security extension for Nextcloud 33+ designed to enforce data confidentiality, document traceability, at-rest cryptographic protection, and Data Loss Prevention (DLP) across collaborative office sessions powered by Nextcloud Office (Collabora Online / CODE).
 
-The application is architected to address the rigorous compliance demands of public administrations, critical infrastructure, and highly regulated entities operating under security frameworks such as the Spanish **Esquema Nacional de Seguridad (ENS - Real Decreto 311/2022)**.
+The application is architected to address the rigorous compliance demands of public administrations, critical infrastructure, and highly regulated entities operating under security frameworks such as the Spanish **Esquema Nacional de Seguridad (ENS - Real Decreto 311/2022)** and the technical guidelines established in **[CCN-STIC-826: Implementación de Seguridad Nextcloud](https://www.ccn-cert.cni.es/es/800-guia-esquema-nacional-de-seguridad/4229-ccn-stic-826-implementacion-de-seguridad-nextcloud/file.html)**.
 
 ---
 
-## ENS Compliance Mapping (RD 311/2022)
+## ENS & CCN-STIC-826 Compliance Mapping (RD 311/2022)
 
-| ENS Measure | Security Dimension | Secure Office Implementation |
+| ENS Measure / STIC Ref | Security Dimension | Gaps Resolved by Secure Office Implementation |
 | :--- | :--- | :--- |
-| **`[mp.info.2]`** | **Activity Logging & Traceability** | Automated, immutable audit trail recording every document access in `oc_secure_office_audit` with user ID, client IP, document metadata, classification, and DLP state. Includes CSV export for security audits. |
-| **`[mp.info.3]`** | **Storage Encryption (At Rest)** | Full compatibility with Nextcloud Server-Side Encryption (SSE) using Master Key mode (AES-256-CTR). Protects raw document files on disk while maintaining seamless, secure collaborative editing in Collabora. |
-| **`[mp.info.4]`** | **Channel Protection (In Transit)** | Enforces and audits secure TLS/HTTPS transit across browser sessions and Collabora WOPI endpoints. |
-| **`[mp.info.6]`** | **Information Leak Prevention (DLP)** | Dynamic, non-removable forensic watermarking (`WatermarkText`) displaying user identity, client IP, and timestamps. Enforces `DisableExport`, `DisableCopy`, and `DisablePrint` controls. |
+| **`[mp.info.2]`**<br>CCN-STIC-826 | **Activity Logging & Traceability** | Automated, immutable audit trail recording every document access in `oc_secure_office_audit` with user ID, client IP, document metadata, classification, and DLP state. Includes CSV export for security audits. |
+| **`[mp.info.3]`**<br>CCN-STIC-826 | **Storage Encryption (At Rest)** | Full compatibility with Nextcloud Server-Side Encryption (SSE) using Master Key mode (AES-256-CTR). Protects raw document files on disk while maintaining seamless, secure collaborative editing in Collabora. |
+| **`[mp.info.4]`**<br>CCN-STIC-826 | **Channel Protection (In Transit)** | Enforces and audits secure TLS/HTTPS transit across browser sessions and Collabora WOPI endpoints. |
+| **`[mp.info.6]`**<br>CCN-STIC-826 | **Information Leak Prevention (DLP)** | Dynamic, non-removable forensic watermarking (`WatermarkText`) displaying user identity, client IP, and timestamps. Enforces `DisableExport`, `DisableCopy`, and `DisablePrint` controls in Collabora Online. |
 
 ---
 
@@ -239,7 +240,7 @@ To achieve full compliance in production environments, particularly for communic
 >
 > 1. **"AS IS" Software**: This software is provided by the author and contributors "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the author or copyright holders be liable for any claim, damages, data loss, security incident, or other liability arising from the use of or inability to use this software.
 >
-> 2. **ENS Accreditation & Certification**: While **Nextcloud Secure Office** implements technical security controls, DLP restrictions, cryptographic compatibility, and audit logging designed to support and facilitate compliance with Spain's **Esquema Nacional de Seguridad (ENS - Real Decreto 311/2022)**, the mere installation or activation of this plugin does **not** constitute an official ENS certification or guarantee formal compliance.
+> 2. **ENS & CCN-STIC Accreditation & Certification**: While **Nextcloud Secure Office** implements technical security controls, DLP restrictions, cryptographic compatibility, and audit logging designed to support and facilitate compliance with Spain's **Esquema Nacional de Seguridad (ENS - Real Decreto 311/2022)** and the **CCN-STIC-826** guideline, the mere installation or activation of this plugin does **not** constitute an official accreditation, CPSTIC qualification, or guarantee formal certification.
 >
 > 3. **Administrative & Organizational Responsibility**: ENS compliance encompasses broad organizational, physical, technical, and operational dimensions. The deploying organization and its designated Security Officer (CISO / Responsable de Seguridad) are solely responsible for:
 >    - Conducting comprehensive security and risk assessments.
@@ -249,7 +250,7 @@ To achieve full compliance in production environments, particularly for communic
 >    - Establishing incident response protocols, access governance, and formal security policies.
 >
 > **Descargo de Responsabilidad (Español):**  
-> El presente software se distribuye "tal cual", sin garantías de ningún tipo. La utilización de este complemento facilita la implementación técnica de medidas de seguridad recogidas en el **Esquema Nacional de Seguridad (Real Decreto 311/2022)**, pero **no sustituye ni otorga por sí misma la certificación formal de conformidad con el ENS**. La responsabilidad sobre la adecuación, gestión de claves criptográficas, aseguramiento de canales TLS, políticas de seguridad y auditorías preceptivas recae exclusivamente en la entidad u organismo implantador.
+> El presente software se distribuye "tal cual", sin garantías de ningún tipo. La utilización de este complemento facilita la implementación técnica de medidas de seguridad recogidas en el **Esquema Nacional de Seguridad (Real Decreto 311/2022)** y la guía **CCN-STIC-826**, pero **no sustituye ni otorga por sí misma la certificación formal de conformidad con el ENS ni la cualificación CPSTIC**. La responsabilidad sobre la adecuación, bastionado del servidor, gestión de claves criptográficas, aseguramiento de canales TLS, políticas de seguridad y auditorías preceptivas recae exclusivamente en la entidad u organismo implantador.
 
 ---
 

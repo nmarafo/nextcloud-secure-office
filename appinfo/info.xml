@@ -3,17 +3,19 @@
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>secure_office</id>
     <name>Secure Office</name>
-    <summary>Forensic Watermarking, DLP, and ENS Compliance for Nextcloud Office</summary>
+    <summary>Forensic Watermarking, DLP, and CCN-STIC-826 / ENS Compliance for Nextcloud Office</summary>
     <description><![CDATA[Nextcloud Secure Office is an enterprise security extension designed for environments requiring high-assurance data protection, forensic traceability, and Data Loss Prevention (DLP) across collaborative office documents in Nextcloud Office (Collabora Online / CODE).
 
-Key Features:
-- Dynamic Forensic Watermarking: Injects real-time indelible background watermarks displaying user identity, client IP, access timestamp, and classification tags.
-- Data Loss Prevention (DLP): Prevents unauthorized document exfiltration by disabling export/downloads (DisableExport), clipboard copy/paste (DisableCopy), and document printing (DisablePrint).
-- Storage Encryption Compatibility (ENS [mp.info.3]): Full compatibility with Nextcloud Server-Side Encryption (SSE) with Master Key mode (AES-256-CTR).
-- Immutable Audit Trail (ENS [mp.info.2]): Logs every document access to a dedicated database audit table with direct CSV export.
-- Continuous Compliance Engine & CLI: Features a diagnostic dashboard in Administration Settings and terminal auditor (occ secure_office:ens-audit).
+Specifically architected to assist public administrations, critical infrastructures, and regulated entities in meeting the technical baseline established in Spain's National Cryptologic Center (CCN-CERT) guideline:
+- [CCN-STIC-826: Implementación de Seguridad Nextcloud](https://www.ccn-cert.cni.es/es/800-guia-esquema-nacional-de-seguridad/4229-ccn-stic-826-implementacion-de-seguridad-nextcloud/file.html)
+- Esquema Nacional de Seguridad (ENS - Real Decreto 311/2022) - Medium / High baseline.
 
-Specifically architected to assist public administrations and regulated entities with the Spanish Esquema Nacional de Seguridad (ENS - Real Decreto 311/2022).
+Key Features & Gaps Resolved:
+- Dynamic Forensic Watermarking & DLP ([mp.info.6]): Injects real-time indelible background watermarks displaying user identity, client IP, access timestamp, and classification tags. Prevents unauthorized document exfiltration by disabling export/downloads (DisableExport), clipboard copy/paste (DisableCopy), and document printing (DisablePrint).
+- Immutable Audit Trail ([mp.info.2]): Logs every document access to a dedicated database audit table with direct CSV export for formal security inspections.
+- Storage Encryption Compatibility ([mp.info.3]): Full compatibility with Nextcloud Server-Side Encryption (SSE) with Master Key mode (AES-256-CTR).
+- Channel Protection Auditing ([mp.info.4]): Audits and enforces strict TLS/HTTPS transport across browser sessions and Collabora WOPI endpoints.
+- Continuous Compliance Engine & CLI: Features a diagnostic dashboard in Administration Settings and terminal auditor (occ secure_office:ens-audit).
 
 ---
 
@@ -47,7 +49,7 @@ This guarantees that all in-flight documents and WOPI authentication tokens trav
 6. Continuous Compliance Verification:
 Verify your global compliance status at any time with the built-in terminal auditor:
   php occ secure_office:ens-audit]]></description>
-    <version>0.2.5</version>
+    <version>0.2.6</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
