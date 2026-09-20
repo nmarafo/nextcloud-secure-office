@@ -56,7 +56,7 @@ This guarantees that all in-flight documents and WOPI authentication tokens trav
 6. Continuous Compliance Verification:
 Verify your global compliance status at any time with the built-in terminal auditor:
   php occ secure_office:ens-audit]]></description>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>

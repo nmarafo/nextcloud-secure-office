@@ -71,6 +71,7 @@ $badgeColor = match ($overallStatus) {
 
     <!-- Formulario de Configuración de Directivas -->
     <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:20px; margin-bottom:24px;">
+        <h3 style="margin-top:0; margin-bottom:16px;">Directivas de Seguridad y DLP (Collabora Office &amp; Archivos Nativos)</h3>
         <form id="secure-office-settings-form" onsubmit="return saveSecureOfficeSettings(event)">
             
             <!-- Clasificación ENS Común -->
