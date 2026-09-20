@@ -28,6 +28,16 @@ class SettingsApiController extends Controller {
 
     #[NoCSRFRequired]
     public function updateSettings(): DataResponse {
+        // --- Módulo Collabora Online ---
+        $collaboraProtection = $this->request->getParam('collabora_protection_enabled');
+        if ($collaboraProtection !== null) {
+            $this->config->setAppValue(
+                SecurityConfigService::APP_ID,
+                'collabora_protection_enabled',
+                filter_var($collaboraProtection, FILTER_VALIDATE_BOOLEAN) ? 'yes' : 'no'
+            );
+        }
+
         $watermarkEnabled = $this->request->getParam('watermark_enabled');
         if ($watermarkEnabled !== null) {
             $this->config->setAppValue(
@@ -73,6 +83,35 @@ class SettingsApiController extends Controller {
             );
         }
 
+        // --- Módulo Archivos Nativos ---
+        $nativeProtection = $this->request->getParam('native_protection_enabled');
+        if ($nativeProtection !== null) {
+            $this->config->setAppValue(
+                SecurityConfigService::APP_ID,
+                'native_protection_enabled',
+                filter_var($nativeProtection, FILTER_VALIDATE_BOOLEAN) ? 'yes' : 'no'
+            );
+        }
+
+        $nativeAudit = $this->request->getParam('native_audit_enabled');
+        if ($nativeAudit !== null) {
+            $this->config->setAppValue(
+                SecurityConfigService::APP_ID,
+                'native_audit_enabled',
+                filter_var($nativeAudit, FILTER_VALIDATE_BOOLEAN) ? 'yes' : 'no'
+            );
+        }
+
+        $nativeDlp = $this->request->getParam('native_dlp_disable_download');
+        if ($nativeDlp !== null) {
+            $this->config->setAppValue(
+                SecurityConfigService::APP_ID,
+                'native_dlp_disable_download',
+                filter_var($nativeDlp, FILTER_VALIDATE_BOOLEAN) ? 'yes' : 'no'
+            );
+        }
+
+        // --- Clasificación Global ---
         $ensClassification = $this->request->getParam('ens_classification');
         if ($ensClassification !== null && is_string($ensClassification)) {
             $this->config->setAppValue(
@@ -97,8 +136,8 @@ class SettingsApiController extends Controller {
     #[NoCSRFRequired]
     public function exportAudit(): DataDownloadResponse {
         $csv = $this->auditService->exportCsv();
-        $filename = 'ens_audit_trail_' . gmdate('Ymd_His') . '.csv';
+        $fileName = 'nextcloud_secure_office_audit_' . date('Ymd_His') . '.csv';
 
-        return new DataDownloadResponse($csv, $filename, 'text/csv');
+        return new DataDownloadResponse($csv, $fileName, 'text/csv');
     }
 }

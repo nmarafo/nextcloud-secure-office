@@ -62,12 +62,21 @@ class EnsDiagnosticService {
             $tableOk = false;
         }
 
+        $collabOn = $this->configService->isCollaboraProtectionEnabled();
+        $nativeOn = $this->configService->isNativeProtectionEnabled() && $this->configService->isNativeAuditEnabled();
+
+        $modules = [];
+        if ($collabOn) $modules[] = 'Collabora Office';
+        if ($nativeOn) $modules[] = 'Archivos Nativos (Files)';
+
+        $modulesText = empty($modules) ? 'Desactivada' : implode(' + ', $modules);
+
         return [
             'code' => 'mp.info.2',
             'title' => 'Registro de actividad y trazabilidad de documentos',
-            'status' => $tableOk ? 'ok' : 'error',
+            'status' => ($tableOk && ($collabOn || $nativeOn)) ? 'ok' : 'error',
             'details' => $tableOk
-                ? "Trazabilidad activa. Registros de auditoría almacenados: $entryCount"
+                ? "Trazabilidad activa [$modulesText]. Registros de auditoría almacenados: $entryCount"
                 : 'Error: La tabla de auditoría oc_secure_office_audit no está disponible.',
             'recommendation' => $tableOk ? null : 'Ejecutar php occ upgrade para migrar la base de datos.',
         ];
@@ -135,25 +144,36 @@ class EnsDiagnosticService {
     }
 
     private function checkDlpProtection(): array {
+        $collabOn = $this->configService->isCollaboraProtectionEnabled();
         $watermark = $this->configService->isWatermarkEnabled();
         $export = $this->configService->isExportDisabled();
         $copy = $this->configService->isCopyDisabled();
         $print = $this->configService->isPrintDisabled();
 
-        $activeControls = [];
-        if ($watermark) $activeControls[] = 'Marca de agua forense';
-        if ($export) $activeControls[] = 'Bloqueo de exportación';
-        if ($copy) $activeControls[] = 'Aislamiento de portapapeles';
-        if ($print) $activeControls[] = 'Bloqueo de impresión';
+        $nativeOn = $this->configService->isNativeProtectionEnabled();
+        $nativeAudit = $this->configService->isNativeAuditEnabled();
+        $nativeDlp = $this->configService->isNativeDlpDownloadDisabled();
 
-        $allDlp = $watermark && $export && $copy && $print;
+        $activeControls = [];
+        if ($collabOn) {
+            if ($watermark) $activeControls[] = 'Marca de agua Collabora';
+            if ($export) $activeControls[] = 'Bloqueo exportación';
+            if ($copy) $activeControls[] = 'Aislamiento portapapeles';
+            if ($print) $activeControls[] = 'Bloqueo impresión';
+        }
+        if ($nativeOn) {
+            if ($nativeAudit) $activeControls[] = 'Trazabilidad nativa';
+            if ($nativeDlp) $activeControls[] = 'Bloqueo descargas directas';
+        }
+
+        $allDlp = ($collabOn && $watermark && $export && $copy && $print) || ($nativeOn && $nativeDlp);
 
         return [
             'code' => 'mp.info.6',
             'title' => 'Prevención de fuga de información (DLP y marcas de agua forenses)',
-            'status' => $allDlp ? 'ok' : ($watermark ? 'warning' : 'error'),
+            'status' => !empty($activeControls) ? 'ok' : 'error',
             'details' => 'Controles DLP activos: ' . (empty($activeControls) ? 'Ninguno' : implode(', ', $activeControls)),
-            'recommendation' => $allDlp ? null : 'Activar todas las restricciones DLP y marcas de agua en el panel de administración.',
+            'recommendation' => !empty($activeControls) ? null : 'Activar restricciones DLP en el panel de administración.',
         ];
     }
 }

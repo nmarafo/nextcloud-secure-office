@@ -20,10 +20,10 @@ The application is architected to address the rigorous compliance demands of pub
 
 | ENS Measure / STIC Ref | Security Dimension | Gaps Resolved by Secure Office Implementation |
 | :--- | :--- | :--- |
-| **`[mp.info.2]`**<br>CCN-STIC-826 | **Activity Logging & Traceability** | Automated, immutable audit trail recording every document access in `oc_secure_office_audit` with user ID, client IP, document metadata, classification, and DLP state. Includes CSV export for security audits. |
-| **`[mp.info.3]`**<br>CCN-STIC-826 | **Storage Encryption (At Rest)** | Full compatibility with Nextcloud Server-Side Encryption (SSE) using Master Key mode (AES-256-CTR). Protects raw document files on disk while maintaining seamless, secure collaborative editing in Collabora. |
-| **`[mp.info.4]`**<br>CCN-STIC-826 | **Channel Protection (In Transit)** | Enforces and audits secure TLS/HTTPS transit across browser sessions and Collabora WOPI endpoints. |
-| **`[mp.info.6]`**<br>CCN-STIC-826 | **Information Leak Prevention (DLP)** | Dynamic, non-removable forensic watermarking (`WatermarkText`) displaying user identity, client IP, and timestamps. Enforces `DisableExport`, `DisableCopy`, and `DisablePrint` controls in Collabora Online. |
+| **`[mp.info.2]`**<br>CCN-STIC-826 | **Activity Logging & Traceability** | Automated, immutable audit trail recording every document access and native file download (PDF, images, ZIPs, binaries) in `oc_secure_office_audit` with user ID, client IP, document metadata, action type, classification, and DLP state. Includes CSV export for security audits. |
+| **`[mp.info.3]`**<br>CCN-STIC-826 | **Storage Encryption (At Rest)** | Full compatibility with Nextcloud Server-Side Encryption (SSE) using Master Key mode (AES-256-CTR). Protects raw document and native files on disk while maintaining seamless, secure collaborative editing in Collabora. |
+| **`[mp.info.4]`**<br>CCN-STIC-826 | **Channel Protection (In Transit)** | Enforces and audits secure TLS/HTTPS transit across browser sessions, WebDAV transfers, and Collabora WOPI endpoints. |
+| **`[mp.info.6]`**<br>CCN-STIC-826 | **Information Leak Prevention (DLP)** | **Collabora Module:** Dynamic, non-removable forensic watermarking (`WatermarkText`) displaying user identity, client IP, and timestamps. Enforces `DisableExport`, `DisableCopy`, and `DisablePrint` controls in Collabora Online.<br>**Native Files Module:** Strict mode policy to restrict direct file downloads for non-administrators. |
 
 ---
 

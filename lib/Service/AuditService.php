@@ -24,6 +24,7 @@ class AuditService {
         bool $dlpExport,
         bool $dlpCopy,
         bool $dlpPrint,
+        string $action = 'COLLABORA_VIEW',
     ): void {
         $qb = $this->db->getQueryBuilder();
         $qb->insert(self::TABLE_NAME)
@@ -34,6 +35,7 @@ class AuditService {
                 'file_name' => $qb->createNamedParameter($fileName),
                 'file_path' => $qb->createNamedParameter($filePath),
                 'classification' => $qb->createNamedParameter($classification),
+                'action' => $qb->createNamedParameter($action),
                 'dlp_export_disabled' => $qb->createNamedParameter($dlpExport ? 1 : 0),
                 'dlp_copy_disabled' => $qb->createNamedParameter($dlpCopy ? 1 : 0),
                 'dlp_print_disabled' => $qb->createNamedParameter($dlpPrint ? 1 : 0),
@@ -79,6 +81,7 @@ class AuditService {
             'File ID',
             'File Name',
             'File Path',
+            'Action / Type',
             'ENS Classification',
             'DLP Disable Export',
             'DLP Disable Copy',
@@ -94,6 +97,7 @@ class AuditService {
                 $row['file_id'],
                 $row['file_name'],
                 $row['file_path'],
+                $row['action'] ?? 'COLLABORA_VIEW',
                 $row['classification'],
                 $row['dlp_export_disabled'] ? 'YES' : 'NO',
                 $row['dlp_copy_disabled'] ? 'YES' : 'NO',

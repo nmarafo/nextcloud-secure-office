@@ -24,6 +24,10 @@ class WopiSecurityMiddleware extends Middleware {
     }
 
     public function afterController(Controller $controller, string $methodName, Response $response): Response {
+        if (!$this->configService->isCollaboraProtectionEnabled()) {
+            return $response;
+        }
+
         if ($methodName !== self::TARGET_METHOD || !is_a($controller, self::TARGET_CONTROLLER)) {
             return $response;
         }

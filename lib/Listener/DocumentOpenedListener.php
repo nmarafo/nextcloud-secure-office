@@ -32,6 +32,10 @@ class DocumentOpenedListener implements IEventListener {
             return;
         }
 
+        if (!$this->configService->isCollaboraProtectionEnabled()) {
+            return;
+        }
+
         $userId = $event->getUserId() ?? 'anonymous';
         $node = $event->getNode();
         $remoteIp = $this->request->getRemoteAddress();
@@ -52,6 +56,7 @@ class DocumentOpenedListener implements IEventListener {
                 $dlpExport,
                 $dlpCopy,
                 $dlpPrint,
+                'COLLABORA_VIEW',
             );
         } catch (\Throwable $e) {
             $this->logger->error('Secure Office: Failed to write database audit entry: ' . $e->getMessage(), [

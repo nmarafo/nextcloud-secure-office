@@ -6,11 +6,14 @@ namespace OCA\SecureOffice\AppInfo;
 
 use OCA\Richdocuments\Events\DocumentOpenedEvent;
 use OCA\SecureOffice\Listener\DocumentOpenedListener;
+use OCA\SecureOffice\Listener\NativeFileAccessListener;
 use OCA\SecureOffice\Middleware\WopiSecurityMiddleware;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\Files\Events\BeforeDirectFileDownloadEvent;
+use OCP\Files\Events\Node\BeforeNodeReadEvent;
 
 class Application extends App implements IBootstrap {
     public const APPNAME = 'secure_office';
@@ -21,11 +24,15 @@ class Application extends App implements IBootstrap {
 
     #[\Override]
     public function register(IRegistrationContext $context): void {
-        // Register global WOPI security middleware to intercept checkFileInfo
+        // Register global WOPI security middleware for Collabora Office
         $context->registerMiddleware(WopiSecurityMiddleware::class, true);
 
-        // Register document access audit listener for ENS compliance
+        // Register document access audit listener for Collabora Office
         $context->registerEventListener(DocumentOpenedEvent::class, DocumentOpenedListener::class);
+
+        // Register native file access and download listener (PDF, images, archives, etc.)
+        $context->registerEventListener(BeforeNodeReadEvent::class, NativeFileAccessListener::class);
+        $context->registerEventListener(BeforeDirectFileDownloadEvent::class, NativeFileAccessListener::class);
     }
 
     #[\Override]
