@@ -61,7 +61,7 @@ This guarantees that all in-flight documents and WOPI authentication tokens trav
 6. Continuous Compliance Verification:
 Verify your global compliance status at any time with the built-in terminal auditor:
   php occ secure_office:ens-audit]]></description>
-    <version>0.4.2</version>
+    <version>0.4.3</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
@@ -73,9 +73,6 @@ Verify your global compliance status at any time with the built-in terminal audi
     <website>https://github.com/nmarafo/nextcloud-secure-office</website>
     <bugs>https://github.com/nmarafo/nextcloud-secure-office/issues</bugs>
     <repository type="git">https://github.com/nmarafo/nextcloud-secure-office.git</repository>
-    <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/01_collabora_forensic_watermark.png</screenshot>
-    <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/02_admin_ens_cards.png</screenshot>
-    <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/03_admin_dlp_settings.png</screenshot>
     <dependencies>
         <nextcloud min-version="33" max-version="33" />
     </dependencies>
