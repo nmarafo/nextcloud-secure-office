@@ -1,22 +1,31 @@
 <?php
+
 declare(strict_types=1);
 
 namespace OCA\SecureOffice\Controller;
 
+use OCA\SecureOffice\Service\AuditService;
+use OCA\SecureOffice\Service\EnsDiagnosticService;
+use OCA\SecureOffice\Service\SecurityConfigService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
-use OCA\SecureOffice\Service\SecurityConfigService;
+use OCP\IGroupManager;
 use OCP\IRequest;
+use OCP\IUserSession;
 
 class PageController extends Controller {
     public function __construct(
         string $appName,
         IRequest $request,
         private SecurityConfigService $configService,
+        private EnsDiagnosticService $diagnosticService,
+        private AuditService $auditService,
+        private IGroupManager $groupManager,
+        private IUserSession $userSession,
     ) {
         parent::__construct($appName, $request);
     }
@@ -24,10 +33,47 @@ class PageController extends Controller {
     #[NoAdminRequired]
     #[NoCSRFRequired]
     public function index(): TemplateResponse {
+        $user = $this->userSession->getUser();
+        $userId = $user ? $user->getUID() : 'anonymous';
+        $canManage = $this->configService->canUserManagePolicies($userId);
+
+        if ($canManage) {
+            $policies = $this->configService->getAllPolicies();
+            $diagnostics = $this->diagnosticService->runDiagnostics();
+            $recentAudit = $this->auditService->getRecentAuditEntries(15);
+            $totalAudit = $this->auditService->countEntries();
+
+            $groups = $this->groupManager->search('');
+            $availableGroups = [];
+            foreach ($groups as $g) {
+                $availableGroups[] = [
+                    'id' => $g->getGID(),
+                    'name' => $g->getDisplayName(),
+                ];
+            }
+
+            return new TemplateResponse(
+                'secure_office',
+                'admin',
+                [
+                    'policies' => $policies,
+                    'diagnostics' => $diagnostics,
+                    'recentAudit' => $recentAudit,
+                    'totalAudit' => $totalAudit,
+                    'availableGroups' => $availableGroups,
+                    'isDelegatedView' => true,
+                ]
+            );
+        }
+
         return new TemplateResponse('secure_office', 'main', [
-            'appName' => 'Secure Office',
-            'message' => 'Nextcloud Secure Office plugin iniciado correctamente.',
+            'appName' => 'Nextcloud Secure Office',
+            'message' => 'Sistema de Protección Ofimática y DLP conforme al Esquema Nacional de Seguridad (ENS RD 311/2022).',
             'policies' => $this->configService->getAllPolicies(),
+            'userCanExport' => $this->configService->isUserAllowedToExport($userId),
+            'userCanPrint' => $this->configService->isUserAllowedToPrint($userId),
+            'userCanCopy' => $this->configService->isUserAllowedToCopy($userId),
+            'userCanDownloadNative' => $this->configService->isUserAllowedToDownloadNative($userId),
         ]);
     }
 
@@ -37,7 +83,7 @@ class PageController extends Controller {
         return new DataResponse([
             'app' => 'secure_office',
             'status' => 'ok',
-            'version' => '0.1.0',
+            'version' => '0.4.0',
             'compliance' => 'ENS RD 311/2022',
             'policies' => $this->configService->getAllPolicies(),
         ]);

@@ -45,24 +45,36 @@ class WopiSecurityMiddleware extends Middleware {
             return $response;
         }
 
-        // Apply DLP restrictions (ENS compliance)
-        if ($this->configService->isExportDisabled()) {
+        $userId = (string)($data['UserId'] ?? 'anonymous');
+
+        // Apply DLP restrictions dynamically per role / group (ENS compliance)
+        $exportAllowed = $this->configService->isUserAllowedToExport($userId);
+        if (!$exportAllowed) {
             $data['DisableExport'] = true;
             $data['HideExportOption'] = true;
+        } else {
+            $data['DisableExport'] = false;
+            $data['HideExportOption'] = false;
         }
 
-        if ($this->configService->isCopyDisabled()) {
+        $copyAllowed = $this->configService->isUserAllowedToCopy($userId);
+        if (!$copyAllowed) {
             $data['DisableCopy'] = true;
+        } else {
+            $data['DisableCopy'] = false;
         }
 
-        if ($this->configService->isPrintDisabled()) {
+        $printAllowed = $this->configService->isUserAllowedToPrint($userId);
+        if (!$printAllowed) {
             $data['DisablePrint'] = true;
             $data['HidePrintOption'] = true;
+        } else {
+            $data['DisablePrint'] = false;
+            $data['HidePrintOption'] = false;
         }
 
         // Apply Dynamic Forensic Watermarking
         if ($this->configService->isWatermarkEnabled()) {
-            $userId = (string)($data['UserId'] ?? 'anonymous');
             $userDisplayName = (string)($data['UserFriendlyName'] ?? $userId);
             $userIp = $this->request->getRemoteAddress();
             $date = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s \U\T\C');
@@ -81,16 +93,16 @@ class WopiSecurityMiddleware extends Middleware {
             $data['WatermarkText'] = $watermarkText;
 
             $this->logger->info(
-                'Secure Office: Injected forensic watermark and DLP policies for user {userId} on {fileName}',
+                'Secure Office: Evaluated granular DLP policies for user {userId} on {fileName} [export: {export}, print: {print}, copy: {copy}]',
                 [
                     'app' => SecurityConfigService::APP_ID,
                     'userId' => $userId,
                     'userIp' => $userIp,
                     'fileName' => $data['BaseFileName'] ?? 'unknown',
                     'watermark' => $watermarkText,
-                    'dlp_export_disabled' => $data['DisableExport'] ?? false,
-                    'dlp_copy_disabled' => $data['DisableCopy'] ?? false,
-                    'dlp_print_disabled' => $data['DisablePrint'] ?? false,
+                    'export' => $exportAllowed ? 'allowed' : 'blocked',
+                    'print' => $printAllowed ? 'allowed' : 'blocked',
+                    'copy' => $copyAllowed ? 'allowed' : 'blocked',
                 ]
             );
         }

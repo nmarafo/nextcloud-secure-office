@@ -65,10 +65,8 @@ class NativeFileAccessListener implements IEventListener {
         $userId = $user ? $user->getUID() : 'anonymous';
         $remoteIp = $this->request->getRemoteAddress();
         $classification = $this->configService->getEnsClassification();
-        $isAdmin = $user && $this->groupManager->isAdmin($userId);
-
-        // Native DLP: Restrict direct file download if configured and user is not an administrator
-        if ($this->configService->isNativeDlpDownloadDisabled() && !$isAdmin) {
+        // Native DLP: Restrict direct file download if configured and user does not have permission
+        if (!$this->configService->isUserAllowedToDownloadNative($userId)) {
             try {
                 $this->auditService->recordAccess(
                     $userId,
@@ -154,9 +152,8 @@ class NativeFileAccessListener implements IEventListener {
 
         $user = $this->userSession->getUser();
         $userId = $user ? $user->getUID() : 'anonymous';
-        $isAdmin = $user && $this->groupManager->isAdmin($userId);
 
-        if ($this->configService->isNativeDlpDownloadDisabled() && !$isAdmin) {
+        if (!$this->configService->isUserAllowedToDownloadNative($userId)) {
             $event->setSuccessful(false);
             $event->setErrorMessage('Descarga denegada por política de seguridad y DLP del ENS [mp.info.6].');
 

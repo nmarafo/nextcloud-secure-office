@@ -40,9 +40,9 @@ class DocumentOpenedListener implements IEventListener {
         $node = $event->getNode();
         $remoteIp = $this->request->getRemoteAddress();
         $classification = $this->configService->getEnsClassification();
-        $dlpExport = $this->configService->isExportDisabled();
-        $dlpCopy = $this->configService->isCopyDisabled();
-        $dlpPrint = $this->configService->isPrintDisabled();
+        $dlpExport = !$this->configService->isUserAllowedToExport($userId);
+        $dlpCopy = !$this->configService->isUserAllowedToCopy($userId);
+        $dlpPrint = !$this->configService->isUserAllowedToPrint($userId);
 
         // 1. Persist audit record to database
         try {

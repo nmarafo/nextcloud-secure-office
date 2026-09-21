@@ -4,6 +4,8 @@ $policies = $_['policies'];
 $diagnostics = $_['diagnostics'];
 $recentAudit = $_['recentAudit'];
 $totalAudit = $_['totalAudit'];
+$availableGroups = $_['availableGroups'] ?? [];
+$isDelegatedView = $_['isDelegatedView'] ?? false;
 
 $overallStatus = $diagnostics['overall_status'];
 $badgeColor = match ($overallStatus) {
@@ -11,15 +13,45 @@ $badgeColor = match ($overallStatus) {
     'PARTIAL' => '#e08a00',
     default => '#dc3545',
 };
+
+// Helper inline para renderizar checkboxes de grupos
+$renderGroupCheckboxes = function(string $name, array $selectedGroups, array $allGroups) {
+    ?>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; margin-bottom:12px;">
+        <?php foreach ($allGroups as $g): ?>
+            <?php
+                $gid = $g['id'];
+                $gname = $g['name'];
+                $isChecked = in_array($gid, $selectedGroups, true);
+            ?>
+            <label style="display:inline-flex; align-items:center; gap:6px; background:<?php echo $isChecked ? '#e0f2fe' : '#f1f5f9'; ?>; border:1px solid <?php echo $isChecked ? '#0284c7' : '#cbd5e1'; ?>; padding:4px 10px; border-radius:14px; font-size:0.85em; cursor:pointer; user-select:none; transition:all 0.15s ease;">
+                <input type="checkbox" name="<?php p($name); ?>[]" value="<?php p($gid); ?>" <?php if ($isChecked) print_unescaped('checked'); ?> style="margin:0; cursor:pointer;" onchange="this.parentElement.style.background=this.checked?'#e0f2fe':'#f1f5f9'; this.parentElement.style.borderColor=this.checked?'#0284c7':'#cbd5e1';">
+                <span><strong><?php p($gname); ?></strong> (<code><?php p($gid); ?></code>)</span>
+            </label>
+        <?php endforeach; ?>
+        <?php if (empty($allGroups)): ?>
+            <span style="color:#64748b; font-size:0.85em; font-style:italic;">No hay grupos de usuarios creados en Nextcloud aún.</span>
+        <?php endif; ?>
+    </div>
+    <?php
+};
 ?>
 
-<div id="secure-office-admin" class="section">
-    <h2>
-        <span class="icon-security" style="display:inline-block; vertical-align:middle; margin-right:8px;"></span>
-        Nextcloud Secure Office &mdash; Esquema Nacional de Seguridad (ENS RD 311/2022)
-    </h2>
-    <p class="settings-hint">
-        Gestión modular de directivas de seguridad, marcas de agua forenses, prevención de fuga de información (DLP) y auditoría tanto para Collabora Online como para archivos nativos de Nextcloud.
+<div id="secure-office-admin" class="section" style="max-width:1100px; margin:0 auto; padding:20px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+        <h2>
+            <span class="icon-security" style="display:inline-block; vertical-align:middle; margin-right:8px;"></span>
+            Nextcloud Secure Office &mdash; Esquema Nacional de Seguridad (ENS RD 311/2022)
+        </h2>
+        <?php if ($isDelegatedView): ?>
+            <span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; padding:4px 12px; border-radius:12px; font-size:0.85em; font-weight:600;">
+                🏛️ Panel de Responsable de la Información (Dirección del Centro)
+            </span>
+        <?php endif; ?>
+    </div>
+
+    <p class="settings-hint" style="margin-bottom:20px;">
+        Gestión modular de directivas de seguridad, marcas de agua forenses, prevención de fuga de información (DLP) por roles/grupos y auditoría tanto para Collabora Online como para archivos nativos de Nextcloud.
     </p>
 
     <!-- Estado General de Cumplimiento -->
@@ -71,14 +103,25 @@ $badgeColor = match ($overallStatus) {
 
     <!-- Formulario de Configuración de Directivas -->
     <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:20px; margin-bottom:24px;">
-        <h3 style="margin-top:0; margin-bottom:16px;">Directivas de Seguridad y DLP (Collabora Office &amp; Archivos Nativos)</h3>
+        <h3 style="margin-top:0; margin-bottom:16px;">Directivas de Seguridad, Roles y DLP (Collabora Office &amp; Archivos Nativos)</h3>
         <form id="secure-office-settings-form" onsubmit="return saveSecureOfficeSettings(event)">
             
             <!-- Clasificación ENS Común -->
-            <div style="margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid #e2e8f0;">
+            <div style="margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid #e2e8f0;">
                 <label for="sec_classification"><strong>Nivel de Clasificación ENS de la Información:</strong></label><br>
                 <input type="text" id="sec_classification" name="ens_classification" value="<?php p($policies['ens_classification']); ?>" style="width:100%; max-width:550px; margin-top:4px;" required>
                 <br><span class="settings-hint">Etiqueta corporativa estampada en marcas de agua y metadatos de auditoría (ej. <em>CONFIDENCIAL (ENS RD 311/2022)</em>, <em>DIFUSIÓN LIMITADA</em>).</span>
+            </div>
+
+            <!-- GESTIÓN DELEGADA ENS: Responsable de la Información -->
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:16px; margin-bottom:20px;">
+                <label style="font-size:1.05em; font-weight:bold; color:#166534;">
+                    🏛️ Responsable de la Información &mdash; Gestión Delegada ENS ([org.1], [org.2], [mp.ac.3])
+                </label>
+                <p class="settings-hint" style="margin-bottom:8px; color:#14532d;">
+                    Permite a los miembros de los roles o grupos seleccionados (ej. <code>direccion</code>, <code>equipo_directivo</code>) administrar estas directivas de permisos y consultar la auditoría del centro educativo sin necesidad de ser superadministradores técnicos de la infraestructura:
+                </p>
+                <?php $renderGroupCheckboxes('delegated_admin_groups', $policies['delegated_admin_groups'] ?? [], $availableGroups); ?>
             </div>
 
             <!-- MÓDULO 1: Collabora Online -->
@@ -90,35 +133,57 @@ $badgeColor = match ($overallStatus) {
                     </label>
                 </div>
                 <p class="settings-hint" style="margin-left:26px; margin-bottom:12px;">
-                    Aplica marcas de agua forenses en tiempo real y controles DLP dentro del editor de documentos (.docx, .odt, .xlsx, .pptx, PDFs en visor).
+                    Aplica marcas de agua forenses dinámicas y controles DLP de descarga, impresión y copiado con granularidad por roles/grupos dentro del editor de documentos (.docx, .xlsx, .pptx, PDFs).
                 </p>
 
                 <div id="collabora-suboptions" style="margin-left:26px; <?php if (!$policies['collabora_protection_enabled']) print_unescaped('opacity:0.6;'); ?>">
+                    <!-- Marca de Agua -->
                     <p>
                         <input type="checkbox" id="sec_watermark_enabled" name="watermark_enabled" value="yes" <?php if ($policies['watermark_enabled']) print_unescaped('checked'); ?>>
                         <label for="sec_watermark_enabled"><strong>Habilitar Marca de Agua Forense Dinámica</strong> ([mp.info.6])</label>
                     </p>
 
-                    <p style="margin-top:8px; margin-left:24px;">
-                        <label for="sec_watermark_template">Plantilla de la marca de agua:</label><br>
-                        <input type="text" id="sec_watermark_template" name="watermark_template" value="<?php p($policies['watermark_template']); ?>" style="width:100%; max-width:650px; font-family:monospace; font-size:0.9em; margin-top:4px;">
+                    <div style="margin-top:4px; margin-bottom:14px; margin-left:24px;">
+                        <label for="sec_watermark_template" class="settings-hint">Plantilla de la marca de agua:</label><br>
+                        <input type="text" id="sec_watermark_template" name="watermark_template" value="<?php p($policies['watermark_template']); ?>" style="width:100%; max-width:650px; font-family:monospace; font-size:0.9em; margin-top:2px;">
                         <br><span class="settings-hint">Tokens: <code>{classification}</code>, <code>{userDisplayName}</code>, <code>{userId}</code>, <code>{userIp}</code>, <code>{date}</code>.</span>
-                    </p>
+                    </div>
 
-                    <p style="margin-top:12px;">
-                        <input type="checkbox" id="sec_dlp_disable_export" name="dlp_disable_export" value="yes" <?php if ($policies['dlp_disable_export']) print_unescaped('checked'); ?>>
-                        <label for="sec_dlp_disable_export"><strong>Bloquear exportación/descarga en visor</strong> (<code>DisableExport</code>)</label>
-                    </p>
+                    <!-- DLP Exportación / Descarga -->
+                    <div style="margin-top:14px; padding-top:10px; border-top:1px dashed #cbd5e1;">
+                        <p style="margin-bottom:4px;">
+                            <input type="checkbox" id="sec_dlp_disable_export" name="dlp_disable_export" value="yes" <?php if ($policies['dlp_disable_export']) print_unescaped('checked'); ?>>
+                            <label for="sec_dlp_disable_export"><strong>Restringir exportación y descarga en visor</strong> (<code>DisableExport</code>)</label>
+                        </p>
+                        <div style="margin-left:24px;">
+                            <span class="settings-hint">Grupos con permiso para exportar/descargar (los administradores siempre están autorizados; si no se marca ninguno, queda bloqueado para todos):</span>
+                            <?php $renderGroupCheckboxes('dlp_export_allowed_groups', $policies['dlp_export_allowed_groups'] ?? [], $availableGroups); ?>
+                        </div>
+                    </div>
 
-                    <p>
-                        <input type="checkbox" id="sec_dlp_disable_copy" name="dlp_disable_copy" value="yes" <?php if ($policies['dlp_disable_copy']) print_unescaped('checked'); ?>>
-                        <label for="sec_dlp_disable_copy"><strong>Aislamiento de portapapeles</strong> (<code>DisableCopy</code>)</label>
-                    </p>
+                    <!-- DLP Impresión -->
+                    <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #cbd5e1;">
+                        <p style="margin-bottom:4px;">
+                            <input type="checkbox" id="sec_dlp_disable_print" name="dlp_disable_print" value="yes" <?php if ($policies['dlp_disable_print']) print_unescaped('checked'); ?>>
+                            <label for="sec_dlp_disable_print"><strong>Restringir impresión física y virtual</strong> (<code>DisablePrint</code>)</label>
+                        </p>
+                        <div style="margin-left:24px;">
+                            <span class="settings-hint">Grupos con permiso para imprimir:</span>
+                            <?php $renderGroupCheckboxes('dlp_print_allowed_groups', $policies['dlp_print_allowed_groups'] ?? [], $availableGroups); ?>
+                        </div>
+                    </div>
 
-                    <p>
-                        <input type="checkbox" id="sec_dlp_disable_print" name="dlp_disable_print" value="yes" <?php if ($policies['dlp_disable_print']) print_unescaped('checked'); ?>>
-                        <label for="sec_dlp_disable_print"><strong>Bloquear impresión física y virtual</strong> (<code>DisablePrint</code>)</label>
-                    </p>
+                    <!-- DLP Portapapeles / Copia -->
+                    <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #cbd5e1;">
+                        <p style="margin-bottom:4px;">
+                            <input type="checkbox" id="sec_dlp_disable_copy" name="dlp_disable_copy" value="yes" <?php if ($policies['dlp_disable_copy']) print_unescaped('checked'); ?>>
+                            <label for="sec_dlp_disable_copy"><strong>Aislamiento de portapapeles / Restringir copiado</strong> (<code>DisableCopy</code>)</label>
+                        </p>
+                        <div style="margin-left:24px;">
+                            <span class="settings-hint">Grupos con permiso para copiar al portapapeles:</span>
+                            <?php $renderGroupCheckboxes('dlp_copy_allowed_groups', $policies['dlp_copy_allowed_groups'] ?? [], $availableGroups); ?>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -131,7 +196,7 @@ $badgeColor = match ($overallStatus) {
                     </label>
                 </div>
                 <p class="settings-hint" style="margin-left:26px; margin-bottom:12px;">
-                    Supervisa y protege archivos nativos descargados directamente desde la interfaz de Archivos o WebDAV (PDF, imágenes, archivos ZIP, etc.).
+                    Supervisa y controla descargas directas desde la interfaz de Archivos o WebDAV (PDF, imágenes, archivos comprimidos, etc.).
                 </p>
 
                 <div id="native-suboptions" style="margin-left:26px; <?php if (!$policies['native_protection_enabled']) print_unescaped('opacity:0.6;'); ?>">
@@ -141,11 +206,16 @@ $badgeColor = match ($overallStatus) {
                         <br><span class="settings-hint">Registra en la base de datos de auditoría ENS cada descarga directa o lectura de archivos nativos con usuario, IP y sello de tiempo.</span>
                     </p>
 
-                    <p style="margin-top:12px;">
-                        <input type="checkbox" id="sec_native_dlp_disable_download" name="native_dlp_disable_download" value="yes" <?php if ($policies['native_dlp_disable_download']) print_unescaped('checked'); ?>>
-                        <label for="sec_native_dlp_disable_download"><strong>Modo Estricto DLP: Bloquear descargas directas a no-administradores</strong> ([mp.info.6])</label>
-                        <br><span class="settings-hint">Impide que los usuarios convencionales descarguen archivos directamente a sus discos locales sin autorización (HTTP 403 Forbidden).</span>
-                    </p>
+                    <div style="margin-top:14px; padding-top:10px; border-top:1px dashed #cbd5e1;">
+                        <p style="margin-bottom:4px;">
+                            <input type="checkbox" id="sec_native_dlp_disable_download" name="native_dlp_disable_download" value="yes" <?php if ($policies['native_dlp_disable_download']) print_unescaped('checked'); ?>>
+                            <label for="sec_native_dlp_disable_download"><strong>Modo Estricto DLP: Restringir descargas directas de archivos</strong> ([mp.info.6])</label>
+                        </p>
+                        <div style="margin-left:24px;">
+                            <span class="settings-hint">Grupos con permiso para descargar archivos nativos directamente (los administradores siempre están autorizados):</span>
+                            <?php $renderGroupCheckboxes('native_dlp_allowed_groups', $policies['native_dlp_allowed_groups'] ?? [], $availableGroups); ?>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -161,7 +231,7 @@ $badgeColor = match ($overallStatus) {
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:16px;">
             <div>
                 <h3 style="margin:0;">Trazabilidad y Registro de Actividad ENS ([mp.info.2])</h3>
-                <span class="settings-hint">Total de accesos registrados en base de datos: <strong><?php p($totalAudit); ?></strong></span>
+                <span class="settings-hint">Total de registros en base de datos: <strong><?php p($totalAudit); ?></strong></span>
             </div>
             <div>
                 <a href="<?php p(\OC::$server->getURLGenerator()->linkToRoute('secure_office.settings_api.export_audit')); ?>" class="button" target="_blank" download>
@@ -171,7 +241,7 @@ $badgeColor = match ($overallStatus) {
         </div>
 
         <?php if (empty($recentAudit)): ?>
-            <p style="color:#718096; font-style:italic;">No hay accesos a documentos registrados aún.</p>
+            <p style="color:#718096; font-style:italic;">No hay actividad registrada aún.</p>
         <?php else: ?>
             <div style="overflow-x:auto;">
                 <table class="grid" style="width:100%; border-collapse:collapse; font-size:0.9em;">
@@ -181,7 +251,7 @@ $badgeColor = match ($overallStatus) {
                             <th style="padding:8px 10px;">Tipo / Acción</th>
                             <th style="padding:8px 10px;">Usuario</th>
                             <th style="padding:8px 10px;">IP Origen</th>
-                            <th style="padding:8px 10px;">Documento</th>
+                            <th style="padding:8px 10px;">Elemento / Documento</th>
                             <th style="padding:8px 10px;">Clasificación</th>
                             <th style="padding:8px 10px; text-align:center;">DLP Aplicado</th>
                         </tr>
@@ -193,11 +263,13 @@ $badgeColor = match ($overallStatus) {
                                 $badgeStyle = match ($action) {
                                     'NATIVE_DOWNLOAD' => 'background:#d1fae5; color:#065f46; border:1px solid #a7f3d0;',
                                     'BLOCKED_DOWNLOAD' => 'background:#fee2e2; color:#991b1b; border:1px solid #fecaca;',
+                                    'POLICY_CHANGE' => 'background:#fef3c7; color:#92400e; border:1px solid #fde68a;',
                                     default => 'background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;',
                                 };
                                 $actionLabel = match ($action) {
                                     'NATIVE_DOWNLOAD' => '⬇️ Descarga Nativa',
-                                    'BLOCKED_DOWNLOAD' => '⛔ Bloqueada',
+                                    'BLOCKED_DOWNLOAD' => '⛔ Descarga Bloqueada',
+                                    'POLICY_CHANGE' => '⚙️ Cambio Directiva',
                                     default => '📄 Collabora Office',
                                 };
                             ?>
@@ -247,17 +319,27 @@ function saveSecureOfficeSettings(event) {
     msg.style.color = '#0082c9';
     msg.innerText = 'Guardando directivas...';
 
+    const getCheckedGroups = (name) => {
+        const checkboxes = document.querySelectorAll('input[name="' + name + '[]"]:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    };
+
     const payload = {
         ens_classification: document.getElementById('sec_classification').value,
+        delegated_admin_groups: getCheckedGroups('delegated_admin_groups'),
         collabora_protection_enabled: document.getElementById('sec_collabora_protection_enabled').checked,
         watermark_enabled: document.getElementById('sec_watermark_enabled').checked,
         watermark_template: document.getElementById('sec_watermark_template').value,
         dlp_disable_export: document.getElementById('sec_dlp_disable_export').checked,
+        dlp_export_allowed_groups: getCheckedGroups('dlp_export_allowed_groups'),
         dlp_disable_copy: document.getElementById('sec_dlp_disable_copy').checked,
+        dlp_copy_allowed_groups: getCheckedGroups('dlp_copy_allowed_groups'),
         dlp_disable_print: document.getElementById('sec_dlp_disable_print').checked,
+        dlp_print_allowed_groups: getCheckedGroups('dlp_print_allowed_groups'),
         native_protection_enabled: document.getElementById('sec_native_protection_enabled').checked,
         native_audit_enabled: document.getElementById('sec_native_audit_enabled').checked,
-        native_dlp_disable_download: document.getElementById('sec_native_dlp_disable_download').checked
+        native_dlp_disable_download: document.getElementById('sec_native_dlp_disable_download').checked,
+        native_dlp_allowed_groups: getCheckedGroups('native_dlp_allowed_groups')
     };
 
     fetch(OC.generateUrl('/apps/secure_office/api/v1/settings'), {
@@ -277,7 +359,7 @@ function saveSecureOfficeSettings(event) {
             setTimeout(() => { msg.innerText = ''; }, 4000);
         } else {
             msg.style.color = '#dc3545';
-            msg.innerText = 'Error al guardar configuración.';
+            msg.innerText = (data && data.message) ? data.message : 'Error al guardar configuración.';
         }
     })
     .catch(err => {

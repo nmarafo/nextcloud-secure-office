@@ -3,23 +3,28 @@
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
     <id>secure_office</id>
     <name>Secure Office</name>
-    <summary>Forensic Watermarking, Native Files DLP &amp; Traceability, and CCN-STIC-826 / ENS Compliance</summary>
-    <description><![CDATA[Nextcloud Secure Office is an enterprise security extension designed for environments requiring high-assurance data protection, forensic traceability, and Data Loss Prevention (DLP) across both collaborative office documents in Nextcloud Office (Collabora Online / CODE) and native Nextcloud files (PDFs, images, archives, etc.).
+    <summary>Granular Role-based DLP, Forensic Watermarking, Native Files Traceability, and Delegated Administration for ENS (RD 311/2022)</summary>
+    <description><![CDATA[Nextcloud Secure Office is an enterprise security extension designed for environments requiring high-assurance data protection, forensic traceability, granular role-based Data Loss Prevention (DLP), and governance delegation across both collaborative office documents in Nextcloud Office (Collabora Online / CODE) and native Nextcloud files (PDFs, images, archives, etc.).
 
-Specifically architected to assist public administrations, critical infrastructures, and regulated entities in meeting the technical baseline established in Spain's National Cryptologic Center (CCN-CERT) guideline:
+Specifically architected to assist public administrations, educational institutions, critical infrastructures, and regulated entities in meeting the baseline established in Spain's National Cryptologic Center (CCN-CERT) guideline and National Security Framework:
 - [CCN-STIC-826: Implementación de Seguridad Nextcloud](https://www.ccn-cert.cni.es/es/800-guia-esquema-nacional-de-seguridad/4229-ccn-stic-826-implementacion-de-seguridad-nextcloud/file.html)
 - Esquema Nacional de Seguridad (ENS - Real Decreto 311/2022) - Medium / High baseline.
 
-Modular Security Architecture:
+Modular Security Architecture & Key Capabilities:
 1. Module 1 - Collaborative Office Protection (Collabora Online / CODE):
    - Dynamic Forensic Watermarking ([mp.info.6]): Injects real-time indelible background watermarks displaying user identity, client IP, access timestamp, and classification tags.
-   - Office DLP ([mp.info.6]): Prohibits unencrypted document exfiltration by disabling export/downloads (DisableExport), clipboard copying (DisableCopy), and printing (DisablePrint).
+   - Granular Role-Based DLP ([mp.info.6]): Define permissions per role/group to allow or prohibit unencrypted document downloads/export (DisableExport), clipboard copying (DisableCopy), and printing (DisablePrint).
 
 2. Module 2 - Native Files Protection & Traceability (Nextcloud Files):
    - Native File Traceability ([mp.info.2]): Automated, immutable audit trail logging all downloads and access to native files (PDF, images, ZIPs, binaries) in oc_secure_office_audit with direct CSV export.
-   - Native File DLP ([mp.info.6]): Strict mode policy to restrict direct file downloads for non-administrators, enforcing viewing within controlled sessions.
+   - Role-Based Native File DLP ([mp.info.6]): Restrict direct file downloads to authorized roles/groups (e.g., Direction, Teachers), preventing unauthorized exfiltration while allowing controlled viewing.
 
-3. Cross-Platform Compliance:
+3. Institutional Governance & Delegated Administration ([org.1], [org.2], [mp.ac.3]):
+   - Responsable de la Información (ENS RD 311/2022): Empowers designated managerial roles (such as School Directors, Department Heads, or Security Officers) to govern DLP policies and inspect audit records directly from the app interface without requiring global IT superadmin privileges.
+   - Policy Change Traceability ([mp.info.2]): Every update to DLP rules or authorized groups is automatically recorded in the audit log (POLICY_CHANGE) with user identity, origin IP, and UTC timestamp.
+   - User Transparency Dashboard: Transparent view for everyday users (teachers, staff, students) displaying which security classification and DLP policies apply to their active session.
+
+4. Cross-Platform Compliance:
    - Storage Encryption Compatibility ([mp.info.3]): Full compatibility with Nextcloud Server-Side Encryption (SSE) with Master Key mode (AES-256-CTR).
    - Channel Protection Auditing ([mp.info.4]): Audits and enforces strict TLS/HTTPS transport across browser sessions and Collabora WOPI endpoints.
    - Continuous Compliance Engine & CLI: Features a diagnostic dashboard in Administration Settings and terminal auditor (occ secure_office:ens-audit).
@@ -56,7 +61,7 @@ This guarantees that all in-flight documents and WOPI authentication tokens trav
 6. Continuous Compliance Verification:
 Verify your global compliance status at any time with the built-in terminal auditor:
   php occ secure_office:ens-audit]]></description>
-    <version>0.3.1</version>
+    <version>0.4.0</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
@@ -73,6 +78,8 @@ Verify your global compliance status at any time with the built-in terminal audi
     <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/03_admin_dlp_settings.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/04_admin_audit_table.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/05_terminal_ens_audit.png</screenshot>
+    <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/06_delegated_director_dashboard.png</screenshot>
+    <screenshot>https://raw.githubusercontent.com/nmarafo/nextcloud-secure-office/main/screenshots/07_user_transparency_view.png</screenshot>
     <dependencies>
         <nextcloud min-version="33" max-version="33" />
     </dependencies>
