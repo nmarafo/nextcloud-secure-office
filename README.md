@@ -17,53 +17,160 @@ The application is specifically architected to address the rigorous compliance d
 
 ---
 
-## Visual Overview & Screenshots
+## 📸 Visual Showcase & Screenshot Carousel
 
-<table align="center">
+<div align="center">
+
+> 💡 **Interactive Carousel**: Click any thumbnail or slide title below to expand and inspect high-resolution interfaces, policy settings, and compliance dashboards.
+
+<table>
   <tr>
-    <td align="center" width="50%">
-      <strong>Dynamic Forensic Watermarking</strong><br>
-      <img src="screenshots/01_collabora_forensic_watermark.png" alt="Forensic Watermark in Collabora Online" width="100%"/>
-      <br><em>Indelible real-time watermark in Collabora with user, IP, date, and ENS classification.</em>
+    <td align="center" width="14%">
+      <a href="#slide-1-collabora-forensic-watermark">
+        <img src="screenshots/01_collabora_forensic_watermark.png" alt="Collabora Watermark Thumbnail" width="110px"/><br>
+        <sub><b>1. Watermark</b></sub>
+      </a>
     </td>
-    <td align="center" width="50%">
-      <strong>ENS Real-Time Compliance Dashboard</strong><br>
-      <img src="screenshots/02_admin_ens_cards.png" alt="ENS Compliance Diagnostic Cards" width="100%"/>
-      <br><em>Continuous compliance assessment evaluating measures [mp.info.2], [mp.info.3], [mp.info.4], and [mp.info.6].</em>
+    <td align="center" width="14%">
+      <a href="#slide-2-ens-compliance-dashboard">
+        <img src="screenshots/02_admin_ens_cards.png" alt="ENS Dashboard Thumbnail" width="110px"/><br>
+        <sub><b>2. ENS Cards</b></sub>
+      </a>
     </td>
-  </tr>
-  <tr>
-    <td align="center" width="50%">
-      <strong>Role-Based DLP & Delegated Governance</strong><br>
-      <img src="screenshots/03_admin_dlp_settings.png" alt="Role-Based DLP & Delegated Administration Settings" width="100%"/>
-      <br><em>Granular group selectors for export, print, copy, and native downloads, plus Delegated Admin for Direction.</em>
+    <td align="center" width="14%">
+      <a href="#slide-3-role-based-dlp-settings">
+        <img src="screenshots/03_admin_dlp_settings.png" alt="DLP Settings Thumbnail" width="110px"/><br>
+        <sub><b>3. DLP Policy</b></sub>
+      </a>
     </td>
-    <td align="center" width="50%">
-      <strong>Activity Audit Trail & Policy Traceability</strong><br>
-      <img src="screenshots/04_admin_audit_table.png" alt="Immutable Activity Audit Trail" width="100%"/>
-      <br><em>Immutable log registering document access, downloads, blocked exfiltration, and POLICY_CHANGE events.</em>
+    <td align="center" width="14%">
+      <a href="#slide-4-audit-trail-traceability">
+        <img src="screenshots/04_admin_audit_table.png" alt="Audit Trail Thumbnail" width="110px"/><br>
+        <sub><b>4. Audit Trail</b></sub>
+      </a>
     </td>
-  </tr>
-  <tr>
-    <td align="center" width="50%">
-      <strong>Delegated Governance Panel (Dirección del Centro)</strong><br>
-      <img src="screenshots/06_delegated_director_dashboard.png" alt="Delegated Administration View for Institutional Direction" width="100%"/>
-      <br><em>Dedicated panel allowing the Responsable de la Información (Director) to govern DLP policies directly.</em>
+    <td align="center" width="14%">
+      <a href="#slide-5-delegated-director-governance">
+        <img src="screenshots/06_delegated_director_dashboard.png" alt="Director Panel Thumbnail" width="110px"/><br>
+        <sub><b>5. Direction</b></sub>
+      </a>
     </td>
-    <td align="center" width="50%">
-      <strong>User Transparency Status View</strong><br>
-      <img src="screenshots/07_user_transparency_view.png" alt="User Transparency Status View" width="100%"/>
-      <br><em>Transparent overview for everyday users (teachers, staff, students) displaying active session DLP rules.</em>
+    <td align="center" width="14%">
+      <a href="#slide-6-user-transparency-view">
+        <img src="screenshots/07_user_transparency_view.png" alt="Transparency Thumbnail" width="110px"/><br>
+        <sub><b>6. Transparency</b></sub>
+      </a>
     </td>
-  </tr>
-  <tr>
-    <td align="center" colspan="2">
-      <strong>Terminal Compliance Auditor (CLI)</strong><br>
-      <img src="screenshots/05_terminal_ens_audit.png" alt="Terminal Compliance Auditor CLI" width="65%"/>
-      <br><em>Audit compliance status directly from terminal with <code>php occ secure_office:ens-audit</code>.</em>
+    <td align="center" width="14%">
+      <a href="#slide-7-terminal-cli-auditor">
+        <img src="screenshots/05_terminal_ens_audit.png" alt="CLI Auditor Thumbnail" width="110px"/><br>
+        <sub><b>7. Terminal CLI</b></sub>
+      </a>
     </td>
   </tr>
 </table>
+
+</div>
+
+---
+
+### <a id="slide-1-collabora-forensic-watermark"></a>
+<details open>
+<summary><b>🎞️ Slide 1: Dynamic Forensic Watermarking (Collabora Online)</b> <i>[Click to toggle]</i></summary>
+<br>
+<p align="center">
+  <a href="screenshots/01_collabora_forensic_watermark.png">
+    <img src="screenshots/01_collabora_forensic_watermark.png" alt="Dynamic Forensic Watermarking in Collabora Online" width="100%"/>
+  </a>
+</p>
+<blockquote>
+<b>Indelible real-time forensic watermark:</b> Dynamically renders user identity, client IP address, date/time, and ENS classification across the document canvas in Collabora Online. Protects against screenshots, illicit exports, and physical camera captures (ENS [mp.info.6], CCN-STIC-826).
+</blockquote>
+</details>
+
+### <a id="slide-2-ens-compliance-dashboard"></a>
+<details>
+<summary><b>🎞️ Slide 2: ENS RD 311/2022 Real-Time Compliance Dashboard</b> <i>[Click to toggle]</i></summary>
+<br>
+<p align="center">
+  <a href="screenshots/02_admin_ens_cards.png">
+    <img src="screenshots/02_admin_ens_cards.png" alt="ENS Real-Time Compliance Assessment Dashboard" width="100%"/>
+  </a>
+</p>
+<blockquote>
+<b>Continuous compliance verification:</b> Live diagnostic status cards actively monitoring critical ENS dimensions: <code>[mp.info.2]</code> (Activity Logging), <code>[mp.info.3]</code> (At-Rest AES-256-CTR Master Key Encryption), <code>[mp.info.4]</code> (TLS Channel Transit), and <code>[mp.info.6]</code> (DLP Enforcement).
+</blockquote>
+</details>
+
+### <a id="slide-3-role-based-dlp-settings"></a>
+<details>
+<summary><b>🎞️ Slide 3: Role-Based DLP & Delegated Governance Settings</b> <i>[Click to toggle]</i></summary>
+<br>
+<p align="center">
+  <a href="screenshots/03_admin_dlp_settings.png">
+    <img src="screenshots/03_admin_dlp_settings.png" alt="Role-Based DLP & Delegated Administration Settings" width="100%"/>
+  </a>
+</p>
+<blockquote>
+<b>Granular DLP policy engine:</b> Group-based selectors for Collabora download/export, print, copy-paste clipboard restriction, and native file download prevention. Includes Delegated Administrator assignment for institutional leadership (ENS [org.1], [org.2]).
+</blockquote>
+</details>
+
+### <a id="slide-4-audit-trail-traceability"></a>
+<details>
+<summary><b>🎞️ Slide 4: Activity Audit Trail & Policy Traceability Log</b> <i>[Click to toggle]</i></summary>
+<br>
+<p align="center">
+  <a href="screenshots/04_admin_audit_table.png">
+    <img src="screenshots/04_admin_audit_table.png" alt="Immutable Activity Audit Trail" width="100%"/>
+  </a>
+</p>
+<blockquote>
+<b>Immutable forensic ledger:</b> High-resolution event logging recording all document accesses, native file downloads, exfiltration blocks, and administrative policy changes (<code>POLICY_CHANGE</code>) with IP, user ID, and timestamp. Fully exportable to CSV for ENS compliance audits (ENS [mp.info.2]).
+</blockquote>
+</details>
+
+### <a id="slide-5-delegated-director-governance"></a>
+<details>
+<summary><b>🎞️ Slide 5: Delegated Governance Panel (Dirección del Centro)</b> <i>[Click to toggle]</i></summary>
+<br>
+<p align="center">
+  <a href="screenshots/06_delegated_director_dashboard.png">
+    <img src="screenshots/06_delegated_director_dashboard.png" alt="Delegated Governance Panel for School Direction" width="100%"/>
+  </a>
+</p>
+<blockquote>
+<b>Segregation of duties & institutional governance:</b> Dedicated management view for the <b>Responsable de la Información</b> (School Director / Department Head) to adjust DLP policies and audit organizational activity without IT superadmin credentials (ENS [org.1], [org.2], [mp.ac.3]).
+</blockquote>
+</details>
+
+### <a id="slide-6-user-transparency-view"></a>
+<details>
+<summary><b>🎞️ Slide 6: User Transparency Status View</b> <i>[Click to toggle]</i></summary>
+<br>
+<p align="center">
+  <a href="screenshots/07_user_transparency_view.png">
+    <img src="screenshots/07_user_transparency_view.png" alt="User Transparency Status View" width="100%"/>
+  </a>
+</p>
+<blockquote>
+<b>Transparency for end-users:</b> Clear overview in user settings for teachers, administrative staff, and students showing active session restrictions, forensic watermarking status, and applied organizational policies.
+</blockquote>
+</details>
+
+### <a id="slide-7-terminal-cli-auditor"></a>
+<details>
+<summary><b>🎞️ Slide 7: Terminal Compliance Auditor CLI</b> <i>[Click to toggle]</i></summary>
+<br>
+<p align="center">
+  <a href="screenshots/05_terminal_ens_audit.png">
+    <img src="screenshots/05_terminal_ens_audit.png" alt="Terminal Compliance Auditor CLI" width="75%"/>
+  </a>
+</p>
+<blockquote>
+<b>Automated command-line auditing:</b> Instant verification via <code>php occ secure_office:ens-audit</code> returning exact compliance scores, check passes/failures, and recommendations for CI/CD or server health monitoring.
+</blockquote>
+</details>
 
 ---
 
