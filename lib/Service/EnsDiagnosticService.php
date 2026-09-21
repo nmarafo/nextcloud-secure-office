@@ -6,6 +6,7 @@ namespace OCA\SecureOffice\Service;
 
 use OCP\Encryption\IManager;
 use OCP\IConfig;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\Server;
 
@@ -16,6 +17,7 @@ class EnsDiagnosticService {
         private IConfig $config,
         private IRequest $request,
         private IManager $encryptionManager,
+        private IL10N $l10n,
     ) {
     }
 
@@ -34,9 +36,9 @@ class EnsDiagnosticService {
 
         $overallStatus = $allOk ? 'COMPLIANT' : ($partialOk ? 'PARTIAL' : 'NON_COMPLIANT');
         $overallLabel = match ($overallStatus) {
-            'COMPLIANT' => 'Conforme (ENS RD 311/2022 - Nivel Alto)',
-            'PARTIAL' => 'Conformidad Parcial (DLP y Trazabilidad Activas, Cifrado en Reposo Pendiente)',
-            'NON_COMPLIANT' => 'No Conforme (Medidas DLP críticas o auditoría desactivadas)',
+            'COMPLIANT' => $this->l10n->t('Compliant (ENS RD 311/2022 - High Level)'),
+            'PARTIAL' => $this->l10n->t('Partial Compliance (DLP and Traceability Active, Storage Encryption Pending)'),
+            'NON_COMPLIANT' => $this->l10n->t('Non-Compliant (Critical DLP measures or auditing disabled)'),
         };
 
         return [
@@ -67,18 +69,18 @@ class EnsDiagnosticService {
 
         $modules = [];
         if ($collabOn) $modules[] = 'Collabora Office';
-        if ($nativeOn) $modules[] = 'Archivos Nativos (Files)';
+        if ($nativeOn) $modules[] = $this->l10n->t('Native Files (Files)');
 
-        $modulesText = empty($modules) ? 'Desactivada' : implode(' + ', $modules);
+        $modulesText = empty($modules) ? $this->l10n->t('Disabled') : implode(' + ', $modules);
 
         return [
             'code' => 'mp.info.2',
-            'title' => 'Registro de actividad y trazabilidad de documentos',
+            'title' => $this->l10n->t('Activity logging and document traceability'),
             'status' => ($tableOk && ($collabOn || $nativeOn)) ? 'ok' : 'error',
             'details' => $tableOk
-                ? "Trazabilidad activa [$modulesText]. Registros de auditoría almacenados: $entryCount"
-                : 'Error: La tabla de auditoría oc_secure_office_audit no está disponible.',
-            'recommendation' => $tableOk ? null : 'Ejecutar php occ upgrade para migrar la base de datos.',
+                ? $this->l10n->t('Active traceability [%s]. Stored audit records: %s', [$modulesText, $entryCount])
+                : $this->l10n->t('Error: Audit table oc_secure_office_audit is not available.'),
+            'recommendation' => $tableOk ? null : $this->l10n->t('Run php occ upgrade to migrate the database.'),
         ];
     }
 
@@ -99,12 +101,12 @@ class EnsDiagnosticService {
         }
 
         if ($encryptionEnabled && $masterKeyEnabled) {
-            $cipher = ($defaultModule === 'OC_DEFAULT_MODULE') ? 'AES-256-CTR' : 'Cifrado robusto';
+            $cipher = ($defaultModule === 'OC_DEFAULT_MODULE') ? 'AES-256-CTR' : $this->l10n->t('Strong encryption');
             return [
                 'code' => 'mp.info.3',
-                'title' => 'Protección criptográfica de la información almacenada (en reposo)',
+                'title' => $this->l10n->t('Cryptographic protection of stored information (at rest)'),
                 'status' => 'ok',
-                'details' => "Cifrado en reposo activo con Clave Maestra ($cipher). Módulo: $defaultModule.",
+                'details' => $this->l10n->t('Encryption at rest active with Master Key (%s). Module: %s.', [$cipher, $defaultModule]),
                 'recommendation' => null,
             ];
         }
@@ -112,19 +114,19 @@ class EnsDiagnosticService {
         if ($encryptionEnabled && !$masterKeyEnabled) {
             return [
                 'code' => 'mp.info.3',
-                'title' => 'Protección criptográfica de la información almacenada (en reposo)',
+                'title' => $this->l10n->t('Cryptographic protection of stored information (at rest)'),
                 'status' => 'warning',
-                'details' => 'El cifrado de servidor está activo pero requiere modo de clave maestra para Collabora Online.',
-                'recommendation' => 'Habilitar clave maestra: php occ encryption:enable-master-key',
+                'details' => $this->l10n->t('Server encryption is enabled but requires Master Key mode for Collabora Online.'),
+                'recommendation' => $this->l10n->t('Enable master key: php occ encryption:enable-master-key'),
             ];
         }
 
         return [
             'code' => 'mp.info.3',
-            'title' => 'Protección criptográfica de la información almacenada (en reposo)',
+            'title' => $this->l10n->t('Cryptographic protection of stored information (at rest)'),
             'status' => 'error',
-            'details' => 'El cifrado de almacenamiento en servidor está desactivado.',
-            'recommendation' => 'Habilitar mediante: php occ app:enable encryption && php occ encryption:enable && php occ encryption:enable-master-key',
+            'details' => $this->l10n->t('Server storage encryption is disabled.'),
+            'recommendation' => $this->l10n->t('Enable via: php occ app:enable encryption && php occ encryption:enable && php occ encryption:enable-master-key'),
         ];
     }
 
@@ -134,12 +136,12 @@ class EnsDiagnosticService {
 
         return [
             'code' => 'mp.info.4',
-            'title' => 'Protección del canal de comunicación (Tránsito)',
+            'title' => $this->l10n->t('Protection of communication channel (in transit)'),
             'status' => $isHttps ? 'ok' : 'info',
             'details' => $isHttps
-                ? 'Canal seguro HTTPS / TLS activo en el servidor.'
-                : 'Entorno de desarrollo local HTTP (localhost). En producción debe configurarse HTTPS obligatorio.',
-            'recommendation' => $isHttps ? null : 'Configurar certificado TLS/SSL y "overwriteprotocol" => "https" en config.php para producción.',
+                ? $this->l10n->t('Secure HTTPS / TLS channel active on the server.')
+                : $this->l10n->t('Local HTTP development environment (localhost). Mandatory HTTPS must be configured in production.'),
+            'recommendation' => $isHttps ? null : $this->l10n->t('Configure TLS/SSL certificate and "overwriteprotocol" => "https" in config.php for production.'),
         ];
     }
 
@@ -156,24 +158,22 @@ class EnsDiagnosticService {
 
         $activeControls = [];
         if ($collabOn) {
-            if ($watermark) $activeControls[] = 'Marca de agua Collabora';
-            if ($export) $activeControls[] = 'Bloqueo exportación';
-            if ($copy) $activeControls[] = 'Aislamiento portapapeles';
-            if ($print) $activeControls[] = 'Bloqueo impresión';
+            if ($watermark) $activeControls[] = $this->l10n->t('Collabora Watermark');
+            if ($export) $activeControls[] = $this->l10n->t('Export Blocking');
+            if ($copy) $activeControls[] = $this->l10n->t('Clipboard Isolation');
+            if ($print) $activeControls[] = $this->l10n->t('Print Blocking');
         }
         if ($nativeOn) {
-            if ($nativeAudit) $activeControls[] = 'Trazabilidad nativa';
-            if ($nativeDlp) $activeControls[] = 'Bloqueo descargas directas';
+            if ($nativeAudit) $activeControls[] = $this->l10n->t('Native Traceability');
+            if ($nativeDlp) $activeControls[] = $this->l10n->t('Direct Download Blocking');
         }
-
-        $allDlp = ($collabOn && $watermark && $export && $copy && $print) || ($nativeOn && $nativeDlp);
 
         return [
             'code' => 'mp.info.6',
-            'title' => 'Prevención de fuga de información (DLP y marcas de agua forenses)',
+            'title' => $this->l10n->t('Information leakage prevention (DLP and forensic watermarks)'),
             'status' => !empty($activeControls) ? 'ok' : 'error',
-            'details' => 'Controles DLP activos: ' . (empty($activeControls) ? 'Ninguno' : implode(', ', $activeControls)),
-            'recommendation' => !empty($activeControls) ? null : 'Activar restricciones DLP en el panel de administración.',
+            'details' => $this->l10n->t('Active DLP controls: %s', [empty($activeControls) ? $this->l10n->t('None') : implode(', ', $activeControls)]),
+            'recommendation' => !empty($activeControls) ? null : $this->l10n->t('Enable DLP restrictions in the administration panel.'),
         ];
     }
 }

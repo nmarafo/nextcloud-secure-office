@@ -10,6 +10,7 @@ use OCA\SecureOffice\Service\SecurityConfigService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IGroupManager;
 use OCP\Settings\ISettings;
+use OCP\Util;
 
 class AdminSettings implements ISettings {
     public function __construct(
@@ -22,6 +23,7 @@ class AdminSettings implements ISettings {
 
     #[\Override]
     public function getForm(): TemplateResponse {
+        Util::addTranslations('secure_office');
         $policies = $this->configService->getAllPolicies();
         $diagnostics = $this->diagnosticService->runDiagnostics();
         $recentAudit = $this->auditService->getRecentAuditEntries(15);

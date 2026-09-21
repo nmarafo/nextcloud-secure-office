@@ -15,6 +15,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\IConfig;
 use OCP\IGroupManager;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
 
@@ -28,6 +29,7 @@ class SettingsApiController extends Controller {
         private IConfig $config,
         private IGroupManager $groupManager,
         private IUserSession $userSession,
+        private IL10N $l10n,
     ) {
         parent::__construct($appName, $request);
     }
@@ -41,7 +43,7 @@ class SettingsApiController extends Controller {
         if (!$this->configService->canUserManagePolicies($userId)) {
             return new DataResponse([
                 'status' => 'error',
-                'message' => 'No dispone de autorización para gestionar directivas de seguridad ENS.',
+                'message' => $this->l10n->t('You are not authorized to manage ENS security policies.'),
             ], Http::STATUS_FORBIDDEN);
         }
 
@@ -203,7 +205,7 @@ class SettingsApiController extends Controller {
 
         return new DataResponse([
             'status' => 'success',
-            'message' => 'Directivas de seguridad ENS actualizadas correctamente.',
+            'message' => $this->l10n->t('ENS security policies updated successfully.'),
             'policies' => $this->configService->getAllPolicies(),
         ]);
     }
@@ -217,7 +219,7 @@ class SettingsApiController extends Controller {
         if (!$this->configService->canUserManagePolicies($userId)) {
             return new DataResponse([
                 'status' => 'error',
-                'message' => 'No autorizado.',
+                'message' => $this->l10n->t('Unauthorized.'),
             ], Http::STATUS_FORBIDDEN);
         }
 
@@ -246,7 +248,7 @@ class SettingsApiController extends Controller {
         if (!$this->configService->canUserManagePolicies($userId)) {
             return new DataResponse([
                 'status' => 'error',
-                'message' => 'No autorizado.',
+                'message' => $this->l10n->t('Unauthorized.'),
             ], Http::STATUS_FORBIDDEN);
         }
 

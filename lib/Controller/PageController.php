@@ -14,8 +14,10 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\IGroupManager;
+use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
+use OCP\Util;
 
 class PageController extends Controller {
     public function __construct(
@@ -26,6 +28,7 @@ class PageController extends Controller {
         private AuditService $auditService,
         private IGroupManager $groupManager,
         private IUserSession $userSession,
+        private IL10N $l10n,
     ) {
         parent::__construct($appName, $request);
     }
@@ -33,6 +36,7 @@ class PageController extends Controller {
     #[NoAdminRequired]
     #[NoCSRFRequired]
     public function index(): TemplateResponse {
+        Util::addTranslations('secure_office');
         $user = $this->userSession->getUser();
         $userId = $user ? $user->getUID() : 'anonymous';
         $canManage = $this->configService->canUserManagePolicies($userId);
@@ -68,7 +72,7 @@ class PageController extends Controller {
 
         return new TemplateResponse('secure_office', 'main', [
             'appName' => 'Nextcloud Secure Office',
-            'message' => 'Sistema de Protección Ofimática y DLP conforme al Esquema Nacional de Seguridad (ENS RD 311/2022).',
+            'message' => $this->l10n->t('Office Protection and DLP System compliant with the National Security Scheme (ENS RD 311/2022).'),
             'policies' => $this->configService->getAllPolicies(),
             'userCanExport' => $this->configService->isUserAllowedToExport($userId),
             'userCanPrint' => $this->configService->isUserAllowedToPrint($userId),
@@ -83,7 +87,7 @@ class PageController extends Controller {
         return new DataResponse([
             'app' => 'secure_office',
             'status' => 'ok',
-            'version' => '0.4.0',
+            'version' => '0.4.7',
             'compliance' => 'ENS RD 311/2022',
             'policies' => $this->configService->getAllPolicies(),
         ]);

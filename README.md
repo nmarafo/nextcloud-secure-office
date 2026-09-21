@@ -5,7 +5,7 @@
 # Nextcloud Secure Office
 
 [![Nextcloud App Store](https://img.shields.io/badge/App_Store-secure__office-0082c9.svg)](https://apps.nextcloud.com/apps/secure_office)
-[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](https://github.com/nmarafo/nextcloud-secure-office/releases)
+[![Version](https://img.shields.io/badge/version-0.4.7-blue.svg)](https://github.com/nmarafo/nextcloud-secure-office/releases)
 [![Nextcloud](https://img.shields.io/badge/Nextcloud-33%2B-0082c9.svg)](https://nextcloud.com/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Compliance](https://img.shields.io/badge/Compliance-ENS%20(RD%20311%2F2022)%20Alto-green.svg)](https://www.ccn-cert.cni.es/ens.html)

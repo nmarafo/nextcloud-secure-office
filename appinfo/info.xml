@@ -53,7 +53,7 @@ Key Capabilities:
 4. Compliance & Diagnostic Tools
 • Storage Encryption Compatibility: Fully compatible with Nextcloud Server-Side Encryption (AES-256-CTR Master Key).
 • Compliance Dashboard & CLI: Real-time diagnostic cards in Administration Settings and built-in terminal auditor (`php occ secure_office:ens-audit`).]]></description>
-    <version>0.4.6</version>
+    <version>0.4.7</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
