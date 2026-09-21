@@ -158,6 +158,19 @@ def main():
                 up_res = requests.post(upload_url, headers=up_headers, data=tf.read())
                 print(f"GitHub Release asset upload status: HTTP {up_res.status_code}")
 
+            import time
+            print("Verifying GitHub Release asset availability before notifying App Store...")
+            for attempt in range(6):
+                time.sleep(5)
+                try:
+                    check_r = requests.head(download_url, allow_redirects=True, timeout=10)
+                    if check_r.status_code == 200:
+                        print(f"Asset download verified: HTTP {check_r.status_code}")
+                        break
+                    print(f"Asset not ready yet (HTTP {check_r.status_code}), retrying...")
+                except Exception as e:
+                    print(f"Check attempt failed: {e}")
+
     # 8. Publish to Nextcloud App Store
     token = os.environ.get("APPSTORE_TOKEN")
     if token:
