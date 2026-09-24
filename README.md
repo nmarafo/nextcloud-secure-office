@@ -5,7 +5,7 @@
 # Nextcloud Secure Office
 
 [![Nextcloud App Store](https://img.shields.io/badge/App_Store-secure__office-0082c9.svg)](https://apps.nextcloud.com/apps/secure_office)
-[![Version](https://img.shields.io/badge/version-0.4.7-blue.svg)](https://github.com/nmarafo/nextcloud-secure-office/releases)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](https://github.com/nmarafo/nextcloud-secure-office/releases)
 [![Nextcloud](https://img.shields.io/badge/Nextcloud-33%2B-0082c9.svg)](https://nextcloud.com/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Compliance](https://img.shields.io/badge/Compliance-ENS%20(RD%20311%2F2022)%20Alto-green.svg)](https://www.ccn-cert.cni.es/ens.html)
@@ -25,46 +25,58 @@ The application is specifically architected to address the rigorous compliance d
 
 <table>
   <tr>
-    <td align="center" width="14%">
+    <td align="center" width="11%">
       <a href="#slide-1-collabora-forensic-watermark">
-        <img src="screenshots/01_collabora_forensic_watermark.png" alt="Collabora Watermark Thumbnail" width="110px"/><br>
+        <img src="screenshots/01_collabora_forensic_watermark.png" alt="Collabora Watermark Thumbnail" width="95px"/><br>
         <sub><b>1. Watermark</b></sub>
       </a>
     </td>
-    <td align="center" width="14%">
+    <td align="center" width="11%">
       <a href="#slide-2-ens-compliance-dashboard">
-        <img src="screenshots/02_admin_ens_cards.png" alt="ENS Dashboard Thumbnail" width="110px"/><br>
+        <img src="screenshots/02_admin_ens_cards.png" alt="ENS Dashboard Thumbnail" width="95px"/><br>
         <sub><b>2. ENS Cards</b></sub>
       </a>
     </td>
-    <td align="center" width="14%">
+    <td align="center" width="11%">
       <a href="#slide-3-role-based-dlp-settings">
-        <img src="screenshots/03_admin_dlp_settings.png" alt="DLP Settings Thumbnail" width="110px"/><br>
+        <img src="screenshots/03_admin_dlp_settings.png" alt="DLP Settings Thumbnail" width="95px"/><br>
         <sub><b>3. DLP Policy</b></sub>
       </a>
     </td>
-    <td align="center" width="14%">
+    <td align="center" width="11%">
       <a href="#slide-4-audit-trail-traceability">
-        <img src="screenshots/04_admin_audit_table.png" alt="Audit Trail Thumbnail" width="110px"/><br>
+        <img src="screenshots/04_admin_audit_table.png" alt="Audit Trail Thumbnail" width="95px"/><br>
         <sub><b>4. Audit Trail</b></sub>
       </a>
     </td>
-    <td align="center" width="14%">
+    <td align="center" width="11%">
       <a href="#slide-5-delegated-director-governance">
-        <img src="screenshots/06_delegated_director_dashboard.png" alt="Director Panel Thumbnail" width="110px"/><br>
+        <img src="screenshots/06_delegated_director_dashboard.png" alt="Director Panel Thumbnail" width="95px"/><br>
         <sub><b>5. Direction</b></sub>
       </a>
     </td>
-    <td align="center" width="14%">
-      <a href="#slide-6-user-transparency-view">
-        <img src="screenshots/07_user_transparency_view.png" alt="Transparency Thumbnail" width="110px"/><br>
-        <sub><b>6. Transparency</b></sub>
+    <td align="center" width="11%">
+      <a href="#slide-8-granular-file-matrix">
+        <img src="screenshots/08_granular_file_matrix.png" alt="File Matrix Thumbnail" width="95px"/><br>
+        <sub><b>6. File Matrix</b></sub>
       </a>
     </td>
-    <td align="center" width="14%">
+    <td align="center" width="11%">
+      <a href="#slide-9-predictive-file-search">
+        <img src="screenshots/09_file_search_predictive.png" alt="File Search Thumbnail" width="95px"/><br>
+        <sub><b>7. File Search</b></sub>
+      </a>
+    </td>
+    <td align="center" width="11%">
+      <a href="#slide-6-user-transparency-view">
+        <img src="screenshots/07_user_transparency_view.png" alt="Transparency Thumbnail" width="95px"/><br>
+        <sub><b>8. User View</b></sub>
+      </a>
+    </td>
+    <td align="center" width="11%">
       <a href="#slide-7-terminal-cli-auditor">
-        <img src="screenshots/05_terminal_ens_audit.png" alt="CLI Auditor Thumbnail" width="110px"/><br>
-        <sub><b>7. Terminal CLI</b></sub>
+        <img src="screenshots/05_terminal_ens_audit.png" alt="CLI Auditor Thumbnail" width="95px"/><br>
+        <sub><b>9. Terminal CLI</b></sub>
       </a>
     </td>
   </tr>
@@ -144,9 +156,37 @@ The application is specifically architected to address the rigorous compliance d
 </blockquote>
 </details>
 
+### <a id="slide-8-granular-file-matrix"></a>
+<details>
+<summary><b>🎞️ Slide 6: Granular File-Level & File × User Matrix (v0.5.0)</b> <i>[Click to toggle]</i></summary>
+<br>
+<p align="center">
+  <a href="screenshots/08_granular_file_matrix.png">
+    <img src="screenshots/08_granular_file_matrix.png" alt="Granular Permissions by File and File × User Matrix" width="100%"/>
+  </a>
+</p>
+<blockquote>
+<b>Pinpoint security exceptions and per-file DLP:</b> Define custom rules for individual sensitive documents (e.g. <code>Acta_Evaluacion_Final_ESO.pdf</code>, <code>Examen_Matematicas.docx</code>) and specific users or groups. Granular directives (+1 Allow, -1 Block, 0 Inherit) override general center policies with sub-second resolution across Collabora Online and Nextcloud Files (ENS [mp.info.6]).
+</blockquote>
+</details>
+
+### <a id="slide-9-predictive-file-search"></a>
+<details>
+<summary><b>🎞️ Slide 7: Predictive File Search & Live Cache Autocomplete (v0.5.0)</b> <i>[Click to toggle]</i></summary>
+<br>
+<p align="center">
+  <a href="screenshots/09_file_search_predictive.png">
+    <img src="screenshots/09_file_search_predictive.png" alt="Predictive File Search and oc_filecache Autocomplete" width="100%"/>
+  </a>
+</p>
+<blockquote>
+<b>Effortless document rule assignment:</b> Live debounced autocomplete queries Nextcloud's filecache directly, instantly presenting matched files, internal paths, and numeric IDs. Directors and managers can select files in one click without browsing technical folder trees.
+</blockquote>
+</details>
+
 ### <a id="slide-6-user-transparency-view"></a>
 <details>
-<summary><b>🎞️ Slide 6: User Transparency Status View</b> <i>[Click to toggle]</i></summary>
+<summary><b>🎞️ Slide 8: End-User Policy Transparency View</b> <i>[Click to toggle]</i></summary>
 <br>
 <p align="center">
   <a href="screenshots/07_user_transparency_view.png">
@@ -160,7 +200,7 @@ The application is specifically architected to address the rigorous compliance d
 
 ### <a id="slide-7-terminal-cli-auditor"></a>
 <details>
-<summary><b>🎞️ Slide 7: Terminal Compliance Auditor CLI</b> <i>[Click to toggle]</i></summary>
+<summary><b>🎞️ Slide 9: Terminal Compliance Auditor CLI</b> <i>[Click to toggle]</i></summary>
 <br>
 <p align="center">
   <a href="screenshots/05_terminal_ens_audit.png">
@@ -182,7 +222,7 @@ The application is specifically architected to address the rigorous compliance d
 | **`[mp.info.2]`**<br>CCN-STIC-826 | **Activity Logging & Traceability** | Automated, immutable audit trail recording every document access, native file download (PDF, images, ZIPs, binaries), and security policy change (`POLICY_CHANGE`) in `oc_secure_office_audit` with user ID, client IP, document metadata, classification, and DLP state. Includes CSV export for security audits. |
 | **`[mp.info.3]`**<br>CCN-STIC-826 | **Storage Encryption (At Rest)** | Full compatibility with Nextcloud Server-Side Encryption (SSE) using Master Key mode (AES-256-CTR). Protects raw document and native files on disk while maintaining seamless, secure collaborative editing in Collabora. |
 | **`[mp.info.4]`**<br>CCN-STIC-826 | **Channel Protection (In Transit)** | Enforces and audits secure TLS/HTTPS transit across browser sessions, WebDAV transfers, and Collabora WOPI endpoints. |
-| **`[mp.info.6]`**<br>CCN-STIC-826 | **Information Leak Prevention (DLP)** | **Collabora Module:** Dynamic, indelible forensic watermarking (`WatermarkText`) displaying user identity, client IP, and timestamps. Granular role-based controls for `DisableExport`, `DisableCopy`, and `DisablePrint` in Collabora Online.<br>**Native Files Module:** Role-based policy restricting direct file downloads to authorized groups (e.g. Direction, Teachers) while preventing download to unauthorized users (e.g. Students). |
+| **`[mp.info.6]`**<br>CCN-STIC-826 | **Information Leak Prevention (DLP)** | **Collabora Module:** Dynamic, indelible forensic watermarking (`WatermarkText`) displaying user identity, client IP, and timestamps. Granular role-based controls for `DisableExport`, `DisableCopy`, and `DisablePrint` in Collabora Online.<br>**Native Files Module:** Role-based policy restricting direct file downloads to authorized groups (e.g. Direction, Teachers) while preventing download to unauthorized users (e.g. Students).<br>**Granular File & User Matrix (v0.5.0):** Fine-grained DLP directives per specific file and user/group (+1 Allow, -1 Block, 0 Inherit) overriding global policies, with predictive autocomplete file search. |
 
 ---
 
@@ -261,6 +301,11 @@ Nextcloud Secure Office operates as a transparent security middleware and policy
   - **Printing Restriction**: Block physical and virtual printing actions within the office suite interface per user role.
   - **Clipboard Isolation**: Prevent copying sensitive text out of documents for non-authorized groups.
   - **Native File Download Control**: Restrict direct file downloads in Nextcloud Files to authorized profiles.
+
+- **Granular File-Level & File × User DLP Matrix (`[mp.info.6]`)**:
+  - **Per-Document Overrides**: Define explicit export, printing, clipboard, and native download permissions for individual files that override general group policies.
+  - **Specific User Exceptions**: Establish tailored security permissions for a particular user (e.g. `teacher1` vs `student2`) on a specific document.
+  - **Custom Document Classification**: Assign distinct ENS classification levels (e.g. *CONFIDENCIAL - ACTAS*, *EXPEDIENTES*) to sensitive files with live search and selection.
 
 - **Dynamic Forensic Watermarking**:
   - Automatically embeds dynamic, non-removable background watermarks in real-time during Collabora Online editing and viewing sessions.

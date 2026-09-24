@@ -6,6 +6,7 @@ $diagnostics = $_['diagnostics'];
 $recentAudit = $_['recentAudit'];
 $totalAudit = $_['totalAudit'];
 $availableGroups = $_['availableGroups'] ?? [];
+$fileRules = $_['fileRules'] ?? [];
 $isDelegatedView = $_['isDelegatedView'] ?? false;
 
 $overallStatus = $diagnostics['overall_status'];
@@ -37,6 +38,17 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
     <?php
 };
 ?>
+<style>
+    #content.app-secure_office, #content {
+        overflow-y: auto !important;
+        position: relative !important;
+        height: auto !important;
+        min-height: calc(100vh - 50px) !important;
+    }
+    body, html {
+        overflow-y: auto !important;
+    }
+</style>
 
 <div id="secure-office-admin" class="section" style="max-width:1100px; margin:0 auto; padding:20px;">
     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
@@ -102,96 +114,107 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
         </div>
     </div>
 
-    <!-- Formulario de Configuración de Directivas -->
+    <!-- Panel de Configuración Modular -->
     <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:20px; margin-bottom:24px;">
-        <h3 style="margin-top:0; margin-bottom:16px;"><?php p($l->t('Security Policies, Roles, and DLP (Collabora Office & Native Files)')); ?></h3>
-        <form id="secure-office-settings-form" onsubmit="return saveSecureOfficeSettings(event)">
-            
-            <!-- Clasificación ENS Común -->
-            <div style="margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid #e2e8f0;">
-                <label for="sec_classification"><strong><?php p($l->t('Information ENS Classification Level:')); ?></strong></label><br>
-                <input type="text" id="sec_classification" name="ens_classification" value="<?php p($policies['ens_classification']); ?>" style="width:100%; max-width:550px; margin-top:4px;" required>
-                <br><span class="settings-hint"><?php p($l->t('Corporate label stamped on watermarks and audit metadata (e.g. %s, %s).', ['CONFIDENCIAL (ENS RD 311/2022)', 'DIFUSIÓN LIMITADA'])); ?></span>
+        <h3 style="margin-top:0; margin-bottom:16px; border-bottom:1px solid #edf2f7; padding-bottom:8px;">
+            <?php p($l->t('Security and DLP Policy Configuration')); ?>
+        </h3>
+
+        <form id="secure-office-settings-form" onsubmit="return saveSecureOfficeSettings(event);">
+            <!-- Clasificación Global ENS -->
+            <div style="margin-bottom:20px; background:#f8fafc; border-left:4px solid #0284c7; padding:12px 16px; border-radius:0 6px 6px 0;">
+                <label for="sec_classification" style="font-weight:bold; display:block; margin-bottom:4px;">
+                    <?php p($l->t('Institutional ENS Classification:')); ?>
+                </label>
+                <input type="text" id="sec_classification" name="ens_classification" value="<?php p($policies['ens_classification']); ?>" style="width:100%; max-width:450px;" required>
+                <span class="settings-hint" style="display:block; margin-top:4px;">
+                    <?php p($l->t('Text displayed on the forensic watermark and compliance logs (e.g. "CONFIDENTIAL (ENS RD 311/2022)").')); ?>
+                </span>
             </div>
 
-            <!-- GESTIÓN DELEGADA ENS: Responsable de la Información -->
-            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:16px; margin-bottom:20px;">
-                <label style="font-size:1.05em; font-weight:bold; color:#166534;">
-                    <?php p($l->t('🏛️ Information Owner — Delegated ENS Management ([org.1], [org.2], [mp.ac.3])')); ?>
-                </label>
-                <p class="settings-hint" style="margin-bottom:8px; color:#14532d;">
-                    <?php p($l->t('Allows members of selected roles or groups (e.g. %s, %s) to manage these permission policies and review institutional audit records without requiring IT superadministrator privileges:', ['direccion', 'equipo_directivo'])); ?>
-                </p>
+            <!-- Gestión Delegada (Responsable de la Información) -->
+            <div style="margin-bottom:24px; background:#f0fdf4; border-left:4px solid #16a34a; padding:12px 16px; border-radius:0 6px 6px 0;">
+                <div style="font-weight:bold; margin-bottom:4px; color:#166534;">
+                    🏛️ <?php p($l->t('Delegated Governance — Information Owner ([org.1], [org.2])')); ?>
+                </div>
+                <span class="settings-hint" style="display:block; margin-bottom:8px;">
+                    <?php p($l->t('Select user groups that represent the Information Owner (e.g. School Direction, Department Heads). Members can manage these DLP policies without needing full IT superadmin privileges:')); ?>
+                </span>
                 <?php $renderGroupCheckboxes('delegated_admin_groups', $policies['delegated_admin_groups'] ?? [], $availableGroups); ?>
             </div>
 
-            <!-- MÓDULO 1: Collabora Online -->
-            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:16px; margin-bottom:20px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" id="sec_collabora_protection_enabled" name="collabora_protection_enabled" value="yes" <?php if ($policies['collabora_protection_enabled']) print_unescaped('checked'); ?> style="transform:scale(1.2);">
+            <!-- Módulo 1: Collabora Online -->
+            <div style="margin-bottom:24px; border:1px solid #e2e8f0; border-radius:6px; padding:16px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <input type="checkbox" id="sec_collabora_protection_enabled" name="collabora_protection_enabled" value="yes" <?php if ($policies['collabora_protection_enabled']) print_unescaped('checked'); ?> onchange="document.getElementById('collabora-suboptions').style.opacity = this.checked ? '1' : '0.4';">
                     <label for="sec_collabora_protection_enabled" style="font-size:1.05em; font-weight:bold; color:#1e293b;">
-                        <?php p($l->t('Module 1: Interactive Office Protection (Collabora Online / CODE)')); ?>
+                        <?php p($l->t('Module 1: Protection in Collaborative Office (Collabora Online / CODE)')); ?>
                     </label>
                 </div>
                 <p class="settings-hint" style="margin-left:26px; margin-bottom:12px;">
-                    <?php p($l->t('Applies dynamic forensic watermarks and DLP controls for downloading, printing, and copying with role/group granularity inside the document editor (.docx, .xlsx, .pptx, PDFs).')); ?>
+                    <?php p($l->t('Enforces forensic watermarking and role-based exfiltration control during office editing sessions.')); ?>
                 </p>
 
-                <div id="collabora-suboptions" style="margin-left:26px; <?php if (!$policies['collabora_protection_enabled']) print_unescaped('opacity:0.6;'); ?>">
-                    <!-- Marca de Agua -->
-                    <p>
+                <div id="collabora-suboptions" style="margin-left:26px; <?php if (!$policies['collabora_protection_enabled']) print_unescaped('opacity:0.4;'); ?>">
+                    <!-- Marca de Agua Forense -->
+                    <div style="margin-bottom:14px;">
                         <input type="checkbox" id="sec_watermark_enabled" name="watermark_enabled" value="yes" <?php if ($policies['watermark_enabled']) print_unescaped('checked'); ?>>
-                        <label for="sec_watermark_enabled"><strong><?php p($l->t('Enable Dynamic Forensic Watermark')); ?></strong> ([mp.info.6])</label>
-                    </p>
-
-                    <div style="margin-top:4px; margin-bottom:14px; margin-left:24px;">
-                        <label for="sec_watermark_template" class="settings-hint"><?php p($l->t('Watermark template:')); ?></label><br>
-                        <input type="text" id="sec_watermark_template" name="watermark_template" value="<?php p($policies['watermark_template']); ?>" style="width:100%; max-width:650px; font-family:monospace; font-size:0.9em; margin-top:2px;">
-                        <br><span class="settings-hint"><?php p($l->t('Tokens:')); ?> <code>{classification}</code>, <code>{userDisplayName}</code>, <code>{userId}</code>, <code>{userIp}</code>, <code>{date}</code>.</span>
+                        <label for="sec_watermark_enabled"><strong><?php p($l->t('Dynamic Forensic Watermark')); ?></strong> ([mp.info.6])</label>
+                        <br>
+                        <span class="settings-hint"><?php p($l->t('Superimposes indelible user identity and IP information diagonally across the document canvas.')); ?></span>
+                        <div style="margin-top:6px;">
+                            <input type="text" id="sec_watermark_template" name="watermark_template" value="<?php p($policies['watermark_template']); ?>" style="width:100%; max-width:600px; font-family:monospace; font-size:0.85em;">
+                            <span class="settings-hint" style="display:block; font-size:0.8em; margin-top:2px;">
+                                <?php p($l->t('Available tokens: {classification}, {userId}, {userDisplayName}, {userIp}, {date}')); ?>
+                            </span>
+                        </div>
                     </div>
 
-                    <!-- DLP Exportación / Descarga -->
-                    <div style="margin-top:14px; padding-top:10px; border-top:1px dashed #cbd5e1;">
-                        <p style="margin-bottom:4px;">
-                            <input type="checkbox" id="sec_dlp_disable_export" name="dlp_disable_export" value="yes" <?php if ($policies['dlp_disable_export']) print_unescaped('checked'); ?>>
-                            <label for="sec_dlp_disable_export"><strong><?php p($l->t('Restrict export and download in viewer')); ?></strong> (<code>DisableExport</code>)</label>
-                        </p>
-                        <div style="margin-left:24px;">
-                            <span class="settings-hint"><?php p($l->t('Groups permitted to export/download (administrators are always authorized; if none selected, blocked for all):')); ?></span>
+                    <!-- DLP: Restricción de Descarga y Exportación -->
+                    <div style="margin-bottom:14px; padding-top:10px; border-top:1px dashed #cbd5e1;">
+                        <input type="checkbox" id="sec_dlp_disable_export" name="dlp_disable_export" value="yes" <?php if ($policies['dlp_disable_export']) print_unescaped('checked'); ?>>
+                        <label for="sec_dlp_disable_export"><strong><?php p($l->t('DLP: Prohibit Document Export and Download')); ?></strong> ([mp.info.6])</label>
+                        <br>
+                        <span class="settings-hint"><?php p($l->t('Removes "Download as", "Export to PDF", and file saving actions in the editor for unauthorized groups.')); ?></span>
+                        
+                        <div style="margin-top:6px; margin-left:20px;">
+                            <span class="settings-hint"><?php p($l->t('Groups permitted to export/download documents:')); ?></span>
                             <?php $renderGroupCheckboxes('dlp_export_allowed_groups', $policies['dlp_export_allowed_groups'] ?? [], $availableGroups); ?>
                         </div>
                     </div>
 
-                    <!-- DLP Impresión -->
-                    <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #cbd5e1;">
-                        <p style="margin-bottom:4px;">
-                            <input type="checkbox" id="sec_dlp_disable_print" name="dlp_disable_print" value="yes" <?php if ($policies['dlp_disable_print']) print_unescaped('checked'); ?>>
-                            <label for="sec_dlp_disable_print"><strong><?php p($l->t('Restrict physical and virtual printing')); ?></strong> (<code>DisablePrint</code>)</label>
-                        </p>
-                        <div style="margin-left:24px;">
-                            <span class="settings-hint"><?php p($l->t('Groups permitted to print:')); ?></span>
-                            <?php $renderGroupCheckboxes('dlp_print_allowed_groups', $policies['dlp_print_allowed_groups'] ?? [], $availableGroups); ?>
+                    <!-- DLP: Restricción de Copiado al Portapapeles -->
+                    <div style="margin-bottom:14px; padding-top:10px; border-top:1px dashed #cbd5e1;">
+                        <input type="checkbox" id="sec_dlp_disable_copy" name="dlp_disable_copy" value="yes" <?php if ($policies['dlp_disable_copy']) print_unescaped('checked'); ?>>
+                        <label for="sec_dlp_disable_copy"><strong><?php p($l->t('DLP: Prohibit Clipboard Copy/Paste Outside Editor')); ?></strong> ([mp.info.6])</label>
+                        <br>
+                        <span class="settings-hint"><?php p($l->t('Prevents copying sensitive document content out of the office canvas to local clipboards.')); ?></span>
+
+                        <div style="margin-top:6px; margin-left:20px;">
+                            <span class="settings-hint"><?php p($l->t('Groups permitted to copy text from documents:')); ?></span>
+                            <?php $renderGroupCheckboxes('dlp_copy_allowed_groups', $policies['dlp_copy_allowed_groups'] ?? [], $availableGroups); ?>
                         </div>
                     </div>
 
-                    <!-- DLP Portapapeles / Copia -->
-                    <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #cbd5e1;">
-                        <p style="margin-bottom:4px;">
-                            <input type="checkbox" id="sec_dlp_disable_copy" name="dlp_disable_copy" value="yes" <?php if ($policies['dlp_disable_copy']) print_unescaped('checked'); ?>>
-                            <label for="sec_dlp_disable_copy"><strong><?php p($l->t('Clipboard isolation / Restrict copying')); ?></strong> (<code>DisableCopy</code>)</label>
-                        </p>
-                        <div style="margin-left:24px;">
-                            <span class="settings-hint"><?php p($l->t('Groups permitted to copy to clipboard:')); ?></span>
-                            <?php $renderGroupCheckboxes('dlp_copy_allowed_groups', $policies['dlp_copy_allowed_groups'] ?? [], $availableGroups); ?>
+                    <!-- DLP: Restricción de Impresión -->
+                    <div style="margin-bottom:6px; padding-top:10px; border-top:1px dashed #cbd5e1;">
+                        <input type="checkbox" id="sec_dlp_disable_print" name="dlp_disable_print" value="yes" <?php if ($policies['dlp_disable_print']) print_unescaped('checked'); ?>>
+                        <label for="sec_dlp_disable_print"><strong><?php p($l->t('DLP: Prohibit Printing')); ?></strong> ([mp.info.6])</label>
+                        <br>
+                        <span class="settings-hint"><?php p($l->t('Disables physical printing and print-to-PDF functions within the office suite for unauthorized groups.')); ?></span>
+
+                        <div style="margin-top:6px; margin-left:20px;">
+                            <span class="settings-hint"><?php p($l->t('Groups permitted to print documents:')); ?></span>
+                            <?php $renderGroupCheckboxes('dlp_print_allowed_groups', $policies['dlp_print_allowed_groups'] ?? [], $availableGroups); ?>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- MÓDULO 2: Archivos Nativos -->
-            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:16px; margin-bottom:20px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" id="sec_native_protection_enabled" name="native_protection_enabled" value="yes" <?php if ($policies['native_protection_enabled']) print_unescaped('checked'); ?> style="transform:scale(1.2);">
+            <!-- Módulo 2: Archivos Nativos -->
+            <div style="margin-bottom:20px; border:1px solid #e2e8f0; border-radius:6px; padding:16px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <input type="checkbox" id="sec_native_protection_enabled" name="native_protection_enabled" value="yes" <?php if ($policies['native_protection_enabled']) print_unescaped('checked'); ?> onchange="document.getElementById('native-suboptions').style.opacity = this.checked ? '1' : '0.4';">
                     <label for="sec_native_protection_enabled" style="font-size:1.05em; font-weight:bold; color:#1e293b;">
                         <?php p($l->t('Module 2: Protection and Traceability of Native Files (Nextcloud Files)')); ?>
                     </label>
@@ -225,6 +248,209 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
                 <span id="save-status-msg" style="margin-left:12px; font-weight:bold;"></span>
             </p>
         </form>
+    </div>
+
+    <!-- Reglas Granulares por Archivo y Combinación Archivo x Usuario -->
+    <div id="sec-granular-rules-section" style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:20px; margin-bottom:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+            <div>
+                <h3 style="margin:0; font-size:1.2em; display:flex; align-items:center; gap:8px;">
+                    <span>🛡️</span>
+                    <span><?php p($l->t('Granular Permissions by File and File × User Matrix ([mp.info.6])')); ?></span>
+                </h3>
+                <span class="settings-hint">
+                    <?php p($l->t('Allows defining custom DLP rules (export, print, copy, download) for specific files, or establishing direct exceptions for particular users/groups. These rules take precedence over general center policies.')); ?>
+                </span>
+            </div>
+            <div>
+                <span style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:4px 10px; border-radius:12px; font-size:0.85em; font-weight:600;">
+                    <?php p($l->t('Rules in effect:')); ?> <strong id="file-rules-count"><?php echo count($fileRules); ?></strong>
+                </span>
+            </div>
+        </div>
+
+        <!-- Formulario de Creación / Asignación de Regla -->
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:16px; margin-bottom:20px;">
+            <h4 style="margin-top:0; margin-bottom:12px; font-size:1em; color:#1e293b;">
+                <?php p($l->t('➕ Define or update rule for specific file:')); ?>
+            </h4>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:12px;">
+                <!-- Selección de Archivo -->
+                <div>
+                    <label for="sec_rule_file_search" style="display:block; font-weight:600; font-size:0.85em; margin-bottom:4px;">
+                        <?php p($l->t('Search file or enter ID:')); ?>
+                    </label>
+                    <div style="position:relative;">
+                        <input type="text" id="sec_rule_file_search" placeholder="<?php p($l->t('Type file name to search...')); ?>" style="width:100%; box-sizing:border-box;">
+                        <div id="sec_file_search_results" style="display:none; position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #0284c7; border-radius:4px; max-height:180px; overflow-y:auto; z-index:100; box-shadow:0 4px 6px rgba(0,0,0,0.1);"></div>
+                    </div>
+                    <div style="display:flex; gap:6px; margin-top:4px;">
+                        <input type="number" id="sec_rule_file_id" placeholder="ID" style="width:75px;" required>
+                        <input type="text" id="sec_rule_file_name" placeholder="<?php p($l->t('File Name')); ?>" style="flex:1;" readonly>
+                        <input type="hidden" id="sec_rule_file_path">
+                    </div>
+                </div>
+
+                <!-- Selección de Destinatario / Ámbito -->
+                <div>
+                    <label for="sec_rule_target_type" style="display:block; font-weight:600; font-size:0.85em; margin-bottom:4px;">
+                        <?php p($l->t('Recipient / Scope:')); ?>
+                    </label>
+                    <select id="sec_rule_target_type" style="width:100%;">
+                        <option value="user"><?php p($l->t('👤 Specific User')); ?></option>
+                        <option value="group"><?php p($l->t('👥 Specific Group')); ?></option>
+                        <option value="all"><?php p($l->t('🌐 All Users on this file (*)')); ?></option>
+                    </select>
+
+                    <div id="sec_target_user_box" style="margin-top:4px;">
+                        <input type="text" id="sec_rule_user_id" placeholder="<?php p($l->t('User UID (e.g. jdoe, teacher1)')); ?>" style="width:100%; box-sizing:border-box;">
+                    </div>
+                    <div id="sec_target_group_box" style="margin-top:4px; display:none;">
+                        <select id="sec_rule_group_id" style="width:100%;">
+                            <?php foreach ($availableGroups as $grp): ?>
+                                <option value="<?php p($grp['id']); ?>"><?php p($grp['name']); ?> (<?php p($grp['id']); ?>)</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Clasificación ENS específica (opcional) -->
+                <div>
+                    <label for="sec_rule_classification" style="display:block; font-weight:600; font-size:0.85em; margin-bottom:4px;">
+                        <?php p($l->t('Specific Classification (optional):')); ?>
+                    </label>
+                    <input type="text" id="sec_rule_classification" placeholder="<?php p($l->t('e.g. CONFIDENCIAL - EVALUACIONES')); ?>" style="width:100%; box-sizing:border-box;">
+                    <span class="settings-hint" style="font-size:0.75em;"><?php p($l->t('Leave empty to inherit general classification')); ?></span>
+                </div>
+            </div>
+
+            <!-- Directivas DLP Granulares -->
+            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:4px; padding:10px 12px; margin-bottom:12px;">
+                <div style="font-size:0.85em; font-weight:600; color:#334155; margin-bottom:8px;">
+                    <?php p($l->t('DLP Directives for this combination:')); ?>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap:10px;">
+                    <div>
+                        <label style="font-size:0.8em; font-weight:500; display:block; margin-bottom:2px;">
+                            <?php p($l->t('Export / Download Collabora:')); ?>
+                        </label>
+                        <select id="sec_rule_dlp_export" style="width:100%; font-size:0.85em;">
+                            <option value="0"><?php p($l->t('0 - Inherit policy')); ?></option>
+                            <option value="1"><?php p($l->t('✓ Allow (+1)')); ?></option>
+                            <option value="-1"><?php p($l->t('⛔ Block (-1)')); ?></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8em; font-weight:500; display:block; margin-bottom:2px;">
+                            <?php p($l->t('Print:')); ?>
+                        </label>
+                        <select id="sec_rule_dlp_print" style="width:100%; font-size:0.85em;">
+                            <option value="0"><?php p($l->t('0 - Inherit policy')); ?></option>
+                            <option value="1"><?php p($l->t('✓ Allow (+1)')); ?></option>
+                            <option value="-1"><?php p($l->t('⛔ Block (-1)')); ?></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8em; font-weight:500; display:block; margin-bottom:2px;">
+                            <?php p($l->t('Copy to Clipboard:')); ?>
+                        </label>
+                        <select id="sec_rule_dlp_copy" style="width:100%; font-size:0.85em;">
+                            <option value="0"><?php p($l->t('0 - Inherit policy')); ?></option>
+                            <option value="1"><?php p($l->t('✓ Allow (+1)')); ?></option>
+                            <option value="-1"><?php p($l->t('⛔ Block (-1)')); ?></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8em; font-weight:500; display:block; margin-bottom:2px;">
+                            <?php p($l->t('Native Download (Files):')); ?>
+                        </label>
+                        <select id="sec_rule_dlp_download" style="width:100%; font-size:0.85em;">
+                            <option value="0"><?php p($l->t('0 - Inherit policy')); ?></option>
+                            <option value="1"><?php p($l->t('✓ Allow (+1)')); ?></option>
+                            <option value="-1"><?php p($l->t('⛔ Block (-1)')); ?></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button type="button" class="button primary" id="btn-save-file-rule" onclick="saveGranularFileRule()">
+                    <?php p($l->t('💾 Save File Rule')); ?>
+                </button>
+                <span id="file-rule-status-msg" style="font-size:0.85em; font-weight:bold;"></span>
+            </div>
+        </div>
+
+        <!-- Tabla de Reglas Configuradas -->
+        <div style="overflow-x:auto;">
+            <table class="grid" style="width:100%; border-collapse:collapse; font-size:0.88em;" id="table-file-rules">
+                <thead>
+                    <tr style="background:#f1f5f9; text-align:left;">
+                        <th style="padding:8px 10px;"><?php p($l->t('File ID & Name')); ?></th>
+                        <th style="padding:8px 10px;"><?php p($l->t('Scope / Recipient')); ?></th>
+                        <th style="padding:8px 10px; text-align:center;"><?php p($l->t('Export')); ?></th>
+                        <th style="padding:8px 10px; text-align:center;"><?php p($l->t('Print')); ?></th>
+                        <th style="padding:8px 10px; text-align:center;"><?php p($l->t('Copy')); ?></th>
+                        <th style="padding:8px 10px; text-align:center;"><?php p($l->t('Download')); ?></th>
+                        <th style="padding:8px 10px;"><?php p($l->t('Classification')); ?></th>
+                        <th style="padding:8px 10px; text-align:center;"><?php p($l->t('Actions')); ?></th>
+                    </tr>
+                </thead>
+                <tbody id="file-rules-tbody">
+                    <?php if (empty($fileRules)): ?>
+                        <tr id="no-file-rules-row">
+                            <td colspan="8" style="padding:12px; text-align:center; color:#64748b; font-style:italic;">
+                                <?php p($l->t('No specific file or user rules configured yet. Global policies apply.')); ?>
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($fileRules as $r): ?>
+                            <?php
+                                $rTargetType = $r['target_type'];
+                                $rTargetId = $r['target_id'];
+                                $badgeTarget = match ($rTargetType) {
+                                    'user' => '👤 ' . $rTargetId,
+                                    'group' => '👥 ' . $rTargetId,
+                                    default => '🌐 ' . $l->t('All (*)'),
+                                };
+                                $renderPermBadge = function($val) use ($l) {
+                                    return match ((int)$val) {
+                                        1 => '<span style="color:#16a34a; font-weight:bold;">✓ ' . $l->t('Allow') . '</span>',
+                                        -1 => '<span style="color:#dc2626; font-weight:bold;">⛔ ' . $l->t('Block') . '</span>',
+                                        default => '<span style="color:#64748b;">' . $l->t('Inherit') . '</span>',
+                                    };
+                                };
+                            ?>
+                            <tr style="border-bottom:1px solid #e2e8f0;" id="file-rule-row-<?php p($r['id']); ?>">
+                                <td style="padding:8px 10px;">
+                                    <strong>#<?php p($r['file_id']); ?></strong> <?php p($r['file_name'] ?? 'document'); ?>
+                                </td>
+                                <td style="padding:8px 10px;">
+                                    <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px; font-size:0.85em; font-weight:600;">
+                                        <?php p($badgeTarget); ?>
+                                    </span>
+                                </td>
+                                <td style="padding:8px 10px; text-align:center;"><?php print_unescaped($renderPermBadge($r['dlp_export'])); ?></td>
+                                <td style="padding:8px 10px; text-align:center;"><?php print_unescaped($renderPermBadge($r['dlp_print'])); ?></td>
+                                <td style="padding:8px 10px; text-align:center;"><?php print_unescaped($renderPermBadge($r['dlp_copy'])); ?></td>
+                                <td style="padding:8px 10px; text-align:center;"><?php print_unescaped($renderPermBadge($r['dlp_download'])); ?></td>
+                                <td style="padding:8px 10px;">
+                                    <span style="font-size:0.85em; color:#475569;">
+                                        <?php p($r['classification'] ?: $l->t('(Inherited)')); ?>
+                                    </span>
+                                </td>
+                                <td style="padding:8px 10px; text-align:center;">
+                                    <button type="button" class="button" style="color:#dc2626; padding:2px 6px; font-size:0.8em;" onclick="deleteGranularFileRule(<?php p($r['id']); ?>)">
+                                        🗑️ <?php p($l->t('Delete')); ?>
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Registro de Auditoría ENS -->
@@ -311,65 +537,6 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
     </div>
 </div>
 
-<script>
-function saveSecureOfficeSettings(event) {
-    event.preventDefault();
-    const btn = document.getElementById('btn-save-settings');
-    const msg = document.getElementById('save-status-msg');
-    btn.disabled = true;
-    msg.style.color = '#0082c9';
-    msg.innerText = (typeof t === 'function') ? t('secure_office', 'Saving policies...') : 'Saving policies...';
-
-    const getCheckedGroups = (name) => {
-        const checkboxes = document.querySelectorAll('input[name="' + name + '[]"]:checked');
-        return Array.from(checkboxes).map(cb => cb.value);
-    };
-
-    const payload = {
-        ens_classification: document.getElementById('sec_classification').value,
-        delegated_admin_groups: getCheckedGroups('delegated_admin_groups'),
-        collabora_protection_enabled: document.getElementById('sec_collabora_protection_enabled').checked,
-        watermark_enabled: document.getElementById('sec_watermark_enabled').checked,
-        watermark_template: document.getElementById('sec_watermark_template').value,
-        dlp_disable_export: document.getElementById('sec_dlp_disable_export').checked,
-        dlp_export_allowed_groups: getCheckedGroups('dlp_export_allowed_groups'),
-        dlp_disable_copy: document.getElementById('sec_dlp_disable_copy').checked,
-        dlp_copy_allowed_groups: getCheckedGroups('dlp_copy_allowed_groups'),
-        dlp_disable_print: document.getElementById('sec_dlp_disable_print').checked,
-        dlp_print_allowed_groups: getCheckedGroups('dlp_print_allowed_groups'),
-        native_protection_enabled: document.getElementById('sec_native_protection_enabled').checked,
-        native_audit_enabled: document.getElementById('sec_native_audit_enabled').checked,
-        native_dlp_disable_download: document.getElementById('sec_native_dlp_disable_download').checked,
-        native_dlp_allowed_groups: getCheckedGroups('native_dlp_allowed_groups')
-    };
-
-    fetch(OC.generateUrl('/apps/secure_office/api/v1/settings'), {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'requesttoken': OC.requestToken
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(data => {
-        btn.disabled = false;
-        if (data && data.status === 'success') {
-            msg.style.color = '#28a745';
-            msg.innerText = '✓ ' + data.message;
-            setTimeout(() => { msg.innerText = ''; }, 4000);
-        } else {
-            msg.style.color = '#dc3545';
-            msg.innerText = (data && data.message) ? data.message : ((typeof t === 'function') ? t('secure_office', 'Error saving configuration.') : 'Error saving configuration.');
-        }
-    })
-    .catch(err => {
-        btn.disabled = false;
-        msg.style.color = '#dc3545';
-        msg.innerText = (typeof t === 'function') ? t('secure_office', 'Server connection error.') : 'Server connection error.';
-        console.error(err);
-    });
-
-    return false;
-}
-</script>
+<?php
+// Note: Client logic is cleanly registered via Util::addScript('secure_office', 'admin') for strict CSP compliance.
+?>

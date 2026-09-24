@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\SecureOffice\Middleware;
 
+use OCA\SecureOffice\Service\FileSecurityService;
 use OCA\SecureOffice\Service\SecurityConfigService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
@@ -18,6 +19,7 @@ class WopiSecurityMiddleware extends Middleware {
 
     public function __construct(
         private SecurityConfigService $configService,
+        private FileSecurityService $fileSecurityService,
         private IRequest $request,
         private LoggerInterface $logger,
     ) {
@@ -46,41 +48,28 @@ class WopiSecurityMiddleware extends Middleware {
         }
 
         $userId = (string)($data['UserId'] ?? 'anonymous');
+        $rawFileId = (string)($this->request->getParam('fileId') ?? '');
+        $fileId = (int)explode('_', $rawFileId)[0];
 
-        // Apply DLP restrictions dynamically per role / group (ENS compliance)
-        $exportAllowed = $this->configService->isUserAllowedToExport($userId);
-        if (!$exportAllowed) {
-            $data['DisableExport'] = true;
-            $data['HideExportOption'] = true;
-        } else {
-            $data['DisableExport'] = false;
-            $data['HideExportOption'] = false;
-        }
+        // Apply granular DLP restrictions per file and user/role
+        $perms = $this->fileSecurityService->evaluatePermissions($fileId, $userId);
 
-        $copyAllowed = $this->configService->isUserAllowedToCopy($userId);
-        if (!$copyAllowed) {
-            $data['DisableCopy'] = true;
-        } else {
-            $data['DisableCopy'] = false;
-        }
+        $data['DisableExport'] = !$perms['can_export'];
+        $data['HideExportOption'] = !$perms['can_export'];
 
-        $printAllowed = $this->configService->isUserAllowedToPrint($userId);
-        if (!$printAllowed) {
-            $data['DisablePrint'] = true;
-            $data['HidePrintOption'] = true;
-        } else {
-            $data['DisablePrint'] = false;
-            $data['HidePrintOption'] = false;
-        }
+        $data['DisableCopy'] = !$perms['can_copy'];
+
+        $data['DisablePrint'] = !$perms['can_print'];
+        $data['HidePrintOption'] = !$perms['can_print'];
 
         // Apply Dynamic Forensic Watermarking
         if ($this->configService->isWatermarkEnabled()) {
             $userDisplayName = (string)($data['UserFriendlyName'] ?? $userId);
             $userIp = $this->request->getRemoteAddress();
             $date = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s \U\T\C');
-            $classification = $this->configService->getEnsClassification();
+            $classification = $perms['classification'];
 
-            $template = $this->configService->getWatermarkTemplate();
+            $template = $perms['watermark_template'];
             $replacements = [
                 '{userId}' => $userId,
                 '{userDisplayName}' => $userDisplayName,
@@ -93,16 +82,18 @@ class WopiSecurityMiddleware extends Middleware {
             $data['WatermarkText'] = $watermarkText;
 
             $this->logger->info(
-                'Secure Office: Evaluated granular DLP policies for user {userId} on {fileName} [export: {export}, print: {print}, copy: {copy}]',
+                'Secure Office: Evaluated granular DLP policies for user {userId} on {fileName} [fileId: {fileId}, export: {export}, print: {print}, copy: {copy}, source: {source}]',
                 [
                     'app' => SecurityConfigService::APP_ID,
+                    'fileId' => $fileId,
                     'userId' => $userId,
                     'userIp' => $userIp,
                     'fileName' => $data['BaseFileName'] ?? 'unknown',
                     'watermark' => $watermarkText,
-                    'export' => $exportAllowed ? 'allowed' : 'blocked',
-                    'print' => $printAllowed ? 'allowed' : 'blocked',
-                    'copy' => $copyAllowed ? 'allowed' : 'blocked',
+                    'export' => $perms['can_export'] ? 'allowed' : 'blocked',
+                    'print' => $perms['can_print'] ? 'allowed' : 'blocked',
+                    'copy' => $perms['can_copy'] ? 'allowed' : 'blocked',
+                    'source' => $perms['rule_source'],
                 ]
             );
         }

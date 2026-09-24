@@ -6,6 +6,7 @@ namespace OCA\SecureOffice\Listener;
 
 use OCA\Richdocuments\Events\DocumentOpenedEvent;
 use OCA\SecureOffice\Service\AuditService;
+use OCA\SecureOffice\Service\FileSecurityService;
 use OCA\SecureOffice\Service\SecurityConfigService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -21,6 +22,7 @@ use Psr\Log\LoggerInterface;
 class DocumentOpenedListener implements IEventListener {
     public function __construct(
         private SecurityConfigService $configService,
+        private FileSecurityService $fileSecurityService,
         private AuditService $auditService,
         private IRequest $request,
         private LoggerInterface $logger,
@@ -39,10 +41,12 @@ class DocumentOpenedListener implements IEventListener {
         $userId = $event->getUserId() ?? 'anonymous';
         $node = $event->getNode();
         $remoteIp = $this->request->getRemoteAddress();
-        $classification = $this->configService->getEnsClassification();
-        $dlpExport = !$this->configService->isUserAllowedToExport($userId);
-        $dlpCopy = !$this->configService->isUserAllowedToCopy($userId);
-        $dlpPrint = !$this->configService->isUserAllowedToPrint($userId);
+
+        $perms = $this->fileSecurityService->evaluatePermissions((int)$node->getId(), $userId);
+        $classification = $perms['classification'];
+        $dlpExport = !$perms['can_export'];
+        $dlpCopy = !$perms['can_copy'];
+        $dlpPrint = !$perms['can_print'];
 
         // 1. Persist audit record to database
         try {
@@ -65,7 +69,6 @@ class DocumentOpenedListener implements IEventListener {
         }
 
         // 2. Log to PSR-3 Nextcloud security log
-
         $this->logger->info(
             'ENS AUDIT [mp.info.2]: Collaborative document opened by user {userId} from {remoteIp}. File: {filePath} (ID: {fileId}, Classification: {classification})',
             [
@@ -78,10 +81,10 @@ class DocumentOpenedListener implements IEventListener {
                 'filePath' => $node->getPath(),
                 'fileSize' => $node->getSize(),
                 'mimeType' => $node->getMimetype(),
-                'classification' => $this->configService->getEnsClassification(),
-                'dlp_export_disabled' => $this->configService->isExportDisabled(),
-                'dlp_copy_disabled' => $this->configService->isCopyDisabled(),
-                'dlp_print_disabled' => $this->configService->isPrintDisabled(),
+                'classification' => $classification,
+                'dlp_export_disabled' => $dlpExport,
+                'dlp_copy_disabled' => $dlpCopy,
+                'dlp_print_disabled' => $dlpPrint,
                 'timestamp' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM),
             ]
         );

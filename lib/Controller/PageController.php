@@ -6,6 +6,7 @@ namespace OCA\SecureOffice\Controller;
 
 use OCA\SecureOffice\Service\AuditService;
 use OCA\SecureOffice\Service\EnsDiagnosticService;
+use OCA\SecureOffice\Service\FileSecurityService;
 use OCA\SecureOffice\Service\SecurityConfigService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -24,6 +25,7 @@ class PageController extends Controller {
         string $appName,
         IRequest $request,
         private SecurityConfigService $configService,
+        private FileSecurityService $fileSecurityService,
         private EnsDiagnosticService $diagnosticService,
         private AuditService $auditService,
         private IGroupManager $groupManager,
@@ -37,6 +39,7 @@ class PageController extends Controller {
     #[NoCSRFRequired]
     public function index(): TemplateResponse {
         Util::addTranslations('secure_office');
+        Util::addScript('secure_office', 'admin');
         $user = $this->userSession->getUser();
         $userId = $user ? $user->getUID() : 'anonymous';
         $canManage = $this->configService->canUserManagePolicies($userId);
@@ -46,6 +49,7 @@ class PageController extends Controller {
             $diagnostics = $this->diagnosticService->runDiagnostics();
             $recentAudit = $this->auditService->getRecentAuditEntries(15);
             $totalAudit = $this->auditService->countEntries();
+            $fileRules = $this->fileSecurityService->getAllRules(50);
 
             $groups = $this->groupManager->search('');
             $availableGroups = [];
@@ -65,6 +69,7 @@ class PageController extends Controller {
                     'recentAudit' => $recentAudit,
                     'totalAudit' => $totalAudit,
                     'availableGroups' => $availableGroups,
+                    'fileRules' => $fileRules,
                     'isDelegatedView' => true,
                 ]
             );
@@ -87,7 +92,7 @@ class PageController extends Controller {
         return new DataResponse([
             'app' => 'secure_office',
             'status' => 'ok',
-            'version' => '0.4.7',
+            'version' => '0.5.0',
             'compliance' => 'ENS RD 311/2022',
             'policies' => $this->configService->getAllPolicies(),
         ]);

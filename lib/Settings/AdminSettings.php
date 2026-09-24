@@ -6,6 +6,7 @@ namespace OCA\SecureOffice\Settings;
 
 use OCA\SecureOffice\Service\AuditService;
 use OCA\SecureOffice\Service\EnsDiagnosticService;
+use OCA\SecureOffice\Service\FileSecurityService;
 use OCA\SecureOffice\Service\SecurityConfigService;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IGroupManager;
@@ -15,6 +16,7 @@ use OCP\Util;
 class AdminSettings implements ISettings {
     public function __construct(
         private SecurityConfigService $configService,
+        private FileSecurityService $fileSecurityService,
         private EnsDiagnosticService $diagnosticService,
         private AuditService $auditService,
         private IGroupManager $groupManager,
@@ -28,6 +30,7 @@ class AdminSettings implements ISettings {
         $diagnostics = $this->diagnosticService->runDiagnostics();
         $recentAudit = $this->auditService->getRecentAuditEntries(15);
         $totalAudit = $this->auditService->countEntries();
+        $fileRules = $this->fileSecurityService->getAllRules(50);
 
         $groups = $this->groupManager->search('');
         $availableGroups = [];
@@ -47,6 +50,7 @@ class AdminSettings implements ISettings {
                 'recentAudit' => $recentAudit,
                 'totalAudit' => $totalAudit,
                 'availableGroups' => $availableGroups,
+                'fileRules' => $fileRules,
             ],
             'blank'
         );
@@ -59,6 +63,6 @@ class AdminSettings implements ISettings {
 
     #[\Override]
     public function getPriority(): int {
-        return 10;
+        return 20;
     }
 }

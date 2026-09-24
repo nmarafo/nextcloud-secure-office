@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\SecureOffice\Listener;
 
 use OCA\SecureOffice\Service\AuditService;
+use OCA\SecureOffice\Service\FileSecurityService;
 use OCA\SecureOffice\Service\SecurityConfigService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -28,6 +29,7 @@ class NativeFileAccessListener implements IEventListener {
 
     public function __construct(
         private SecurityConfigService $configService,
+        private FileSecurityService $fileSecurityService,
         private AuditService $auditService,
         private IRequest $request,
         private IUserSession $userSession,
@@ -64,9 +66,13 @@ class NativeFileAccessListener implements IEventListener {
         $user = $this->userSession->getUser();
         $userId = $user ? $user->getUID() : 'anonymous';
         $remoteIp = $this->request->getRemoteAddress();
-        $classification = $this->configService->getEnsClassification();
-        // Native DLP: Restrict direct file download if configured and user does not have permission
-        if (!$this->configService->isUserAllowedToDownloadNative($userId)) {
+
+        // Evaluate granular DLP per file and user/role
+        $perms = $this->fileSecurityService->evaluatePermissions((int)$node->getId(), $userId);
+        $classification = $perms['classification'];
+
+        // Native DLP: Restrict direct file download if configured or specific file/user rule restricts it
+        if (!$perms['can_download']) {
             try {
                 $this->auditService->recordAccess(
                     $userId,
@@ -85,13 +91,14 @@ class NativeFileAccessListener implements IEventListener {
             }
 
             $this->logger->warning(
-                'ENS DLP [mp.info.6]: Native file download blocked for user {userId} on {fileName}',
+                'ENS DLP [mp.info.6]: Native file download blocked for user {userId} on {fileName} [source: {source}]',
                 [
                     'app' => SecurityConfigService::APP_ID,
                     'userId' => $userId,
                     'remoteIp' => $remoteIp,
                     'fileName' => $node->getName(),
                     'filePath' => $path,
+                    'source' => $perms['rule_source'],
                 ]
             );
 
@@ -153,18 +160,25 @@ class NativeFileAccessListener implements IEventListener {
         $user = $this->userSession->getUser();
         $userId = $user ? $user->getUID() : 'anonymous';
 
-        if (!$this->configService->isUserAllowedToDownloadNative($userId)) {
+        $fileId = 0;
+        if (method_exists($event, 'getFile') && $event->getFile() instanceof File) {
+            $fileId = (int)$event->getFile()->getId();
+        }
+
+        $perms = $this->fileSecurityService->evaluatePermissions($fileId, $userId);
+
+        if (!$perms['can_download']) {
             $event->setSuccessful(false);
             $event->setErrorMessage('Descarga denegada por política de seguridad y DLP del ENS [mp.info.6].');
 
             $remoteIp = $this->request->getRemoteAddress();
-            $classification = $this->configService->getEnsClassification();
+            $classification = $perms['classification'];
 
             try {
                 $this->auditService->recordAccess(
                     $userId,
                     $remoteIp,
-                    0,
+                    $fileId,
                     basename($event->getPath()),
                     $event->getPath(),
                     $classification,

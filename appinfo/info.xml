@@ -28,7 +28,10 @@ Capacidades Clave:
 
 4. Herramientas de Cumplimiento y Diagnóstico
 • Compatibilidad con Cifrado en Reposo: Plenamente compatible con el cifrado de servidor Nextcloud (modo Master Key AES-256-CTR).
-• Panel de Diagnóstico y Auditor CLI: Tarjetas de verificación continua en Ajustes de Administración y auditor por consola (`php occ secure_office:ens-audit`).]]></description>
+• Panel de Diagnóstico y Auditor CLI: Tarjetas de verificación continua en Ajustes de Administración y auditor por consola (`php occ secure_office:ens-audit`).
+
+5. Matriz Granular por Archivo y Combinación Archivo × Usuario
+• DLP y Clasificación por Archivo: Posibilidad de definir directivas de exportación, impresión, copia y descarga para documentos específicos o para un usuario/grupo concreto sobre dicho archivo.]]></description>
     <description lang="en"><![CDATA[Nextcloud Secure Office is an enterprise security and Data Loss Prevention (DLP) extension designed for environments requiring high-assurance data protection, forensic traceability, and regulatory compliance.
 
 Specifically architected to assist public administrations, educational institutions, critical infrastructures, and regulated entities in meeting the baseline established in:
@@ -52,8 +55,11 @@ Key Capabilities:
 
 4. Compliance & Diagnostic Tools
 • Storage Encryption Compatibility: Fully compatible with Nextcloud Server-Side Encryption (AES-256-CTR Master Key).
-• Compliance Dashboard & CLI: Real-time diagnostic cards in Administration Settings and built-in terminal auditor (`php occ secure_office:ens-audit`).]]></description>
-    <version>0.4.7</version>
+• Compliance Dashboard & CLI: Real-time diagnostic cards in Administration Settings and built-in terminal auditor (`php occ secure_office:ens-audit`).
+
+5. Granular File & File × User Matrix
+• Per-File & Per-User Policies: Define custom export, print, copy, and download rules for specific documents or specific user/group combinations overriding general rules.]]></description>
+    <version>0.5.0</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
@@ -68,6 +74,9 @@ Key Capabilities:
     <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/01_collabora_forensic_watermark.png</screenshot>
     <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/02_admin_ens_cards.png</screenshot>
     <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/03_admin_dlp_settings.png</screenshot>
+    <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/06_delegated_director_dashboard.png</screenshot>
+    <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/08_granular_file_matrix.png</screenshot>
+    <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/09_file_search_predictive.png</screenshot>
     <dependencies>
         <nextcloud min-version="33" max-version="33" />
     </dependencies>

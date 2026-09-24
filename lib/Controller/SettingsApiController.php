@@ -6,6 +6,7 @@ namespace OCA\SecureOffice\Controller;
 
 use OCA\SecureOffice\Service\AuditService;
 use OCA\SecureOffice\Service\EnsDiagnosticService;
+use OCA\SecureOffice\Service\FileSecurityService;
 use OCA\SecureOffice\Service\SecurityConfigService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -24,6 +25,7 @@ class SettingsApiController extends Controller {
         string $appName,
         IRequest $request,
         private SecurityConfigService $configService,
+        private FileSecurityService $fileSecurityService,
         private EnsDiagnosticService $diagnosticService,
         private AuditService $auditService,
         private IConfig $config,
@@ -207,6 +209,172 @@ class SettingsApiController extends Controller {
             'status' => 'success',
             'message' => $this->l10n->t('ENS security policies updated successfully.'),
             'policies' => $this->configService->getAllPolicies(),
+        ]);
+    }
+
+    // --- Reglas Granulares por Archivo y Archivo x Usuario ---
+
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    public function getFileRules(): DataResponse {
+        $user = $this->userSession->getUser();
+        $userId = $user ? $user->getUID() : 'anonymous';
+
+        if (!$this->configService->canUserManagePolicies($userId)) {
+            return new DataResponse([
+                'status' => 'error',
+                'message' => $this->l10n->t('Unauthorized.'),
+            ], Http::STATUS_FORBIDDEN);
+        }
+
+        return new DataResponse([
+            'status' => 'success',
+            'rules' => $this->fileSecurityService->getAllRules(100),
+        ]);
+    }
+
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    public function saveFileRule(): DataResponse {
+        $user = $this->userSession->getUser();
+        $userId = $user ? $user->getUID() : 'anonymous';
+
+        if (!$this->configService->canUserManagePolicies($userId)) {
+            return new DataResponse([
+                'status' => 'error',
+                'message' => $this->l10n->t('Unauthorized.'),
+            ], Http::STATUS_FORBIDDEN);
+        }
+
+        $fileId = (int)$this->resolveParam('file_id');
+        if ($fileId <= 0) {
+            return new DataResponse([
+                'status' => 'error',
+                'message' => $this->l10n->t('Invalid or missing File ID.'),
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        $fileName = (string)($this->resolveParam('file_name') ?? 'document');
+        $filePath = (string)($this->resolveParam('file_path') ?? '');
+        $targetType = (string)($this->resolveParam('target_type') ?? 'user');
+        $targetId = trim((string)($this->resolveParam('target_id') ?? ''));
+
+        if ($targetType === 'all') {
+            $targetId = '*';
+        } elseif ($targetId === '') {
+            return new DataResponse([
+                'status' => 'error',
+                'message' => $this->l10n->t('Recipient user or group ID cannot be empty.'),
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        $perms = [
+            'dlp_export' => (int)($this->resolveParam('dlp_export') ?? 0),
+            'dlp_print' => (int)($this->resolveParam('dlp_print') ?? 0),
+            'dlp_copy' => (int)($this->resolveParam('dlp_copy') ?? 0),
+            'dlp_download' => (int)($this->resolveParam('dlp_download') ?? 0),
+        ];
+
+        $classification = $this->resolveParam('classification');
+        $classification = ($classification !== null && trim((string)$classification) !== '') ? trim((string)$classification) : null;
+
+        $watermarkCustom = $this->resolveParam('watermark_custom');
+        $watermarkCustom = ($watermarkCustom !== null && trim((string)$watermarkCustom) !== '') ? trim((string)$watermarkCustom) : null;
+
+        $saved = $this->fileSecurityService->saveRule(
+            $fileId,
+            $fileName,
+            $filePath,
+            $targetType,
+            $targetId,
+            $perms,
+            $classification,
+            $watermarkCustom,
+            $userId
+        );
+
+        // Registro de auditoría ENS del cambio de política específica
+        try {
+            $this->auditService->recordAccess(
+                $userId,
+                $this->request->getRemoteAddress(),
+                $fileId,
+                $fileName,
+                $filePath,
+                $classification ?? $this->configService->getEnsClassification(),
+                $perms['dlp_export'] === -1,
+                $perms['dlp_copy'] === -1,
+                $perms['dlp_print'] === -1,
+                'POLICY_CHANGE'
+            );
+        } catch (\Throwable) {
+        }
+
+        return new DataResponse([
+            'status' => 'success',
+            'message' => $this->l10n->t('Granular file rule saved successfully.'),
+            'rule' => $saved,
+            'rules' => $this->fileSecurityService->getAllRules(100),
+        ]);
+    }
+
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    public function deleteFileRule(int $ruleId): DataResponse {
+        $user = $this->userSession->getUser();
+        $userId = $user ? $user->getUID() : 'anonymous';
+
+        if (!$this->configService->canUserManagePolicies($userId)) {
+            return new DataResponse([
+                'status' => 'error',
+                'message' => $this->l10n->t('Unauthorized.'),
+            ], Http::STATUS_FORBIDDEN);
+        }
+
+        $success = $this->fileSecurityService->deleteRule($ruleId);
+
+        try {
+            $this->auditService->recordAccess(
+                $userId,
+                $this->request->getRemoteAddress(),
+                0,
+                'FILE_RULE_' . $ruleId,
+                'file_rules/' . $ruleId,
+                $this->configService->getEnsClassification(),
+                false,
+                false,
+                false,
+                'POLICY_CHANGE'
+            );
+        } catch (\Throwable) {
+        }
+
+        return new DataResponse([
+            'status' => $success ? 'success' : 'error',
+            'message' => $success ? $this->l10n->t('Rule deleted successfully.') : $this->l10n->t('Failed to delete rule.'),
+            'rules' => $this->fileSecurityService->getAllRules(100),
+        ]);
+    }
+
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    public function searchFiles(): DataResponse {
+        $user = $this->userSession->getUser();
+        $userId = $user ? $user->getUID() : 'anonymous';
+
+        if (!$this->configService->canUserManagePolicies($userId)) {
+            return new DataResponse([
+                'status' => 'error',
+                'message' => $this->l10n->t('Unauthorized.'),
+            ], Http::STATUS_FORBIDDEN);
+        }
+
+        $query = (string)($this->request->getParam('q') ?? '');
+        $files = $this->fileSecurityService->searchFiles($query, 15);
+
+        return new DataResponse([
+            'status' => 'success',
+            'files' => $files,
         ]);
     }
 
