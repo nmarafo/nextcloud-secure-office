@@ -59,7 +59,7 @@ Key Capabilities:
 
 5. Granular File & File × User Matrix
 • Per-File & Per-User Policies: Define custom export, print, copy, and download rules for specific documents or specific user/group combinations overriding general rules.]]></description>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>
@@ -71,12 +71,12 @@ Key Capabilities:
     <website>https://github.com/nmarafo/nextcloud-secure-office</website>
     <bugs>https://github.com/nmarafo/nextcloud-secure-office/issues</bugs>
     <repository type="git">https://github.com/nmarafo/nextcloud-secure-office.git</repository>
-    <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/01_collabora_forensic_watermark.png</screenshot>
-    <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/02_admin_ens_cards.png</screenshot>
-    <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/03_admin_dlp_settings.png</screenshot>
-    <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/06_delegated_director_dashboard.png</screenshot>
-    <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/08_granular_file_matrix.png</screenshot>
-    <screenshot>https://github.com/nmarafo/nextcloud-secure-office/raw/main/screenshots/09_file_search_predictive.png</screenshot>
+    <screenshot>https://cdn.jsdelivr.net/gh/nmarafo/nextcloud-secure-office@main/screenshots/01_collabora_forensic_watermark.png</screenshot>
+    <screenshot>https://cdn.jsdelivr.net/gh/nmarafo/nextcloud-secure-office@main/screenshots/02_admin_ens_cards.png</screenshot>
+    <screenshot>https://cdn.jsdelivr.net/gh/nmarafo/nextcloud-secure-office@main/screenshots/03_admin_dlp_settings.png</screenshot>
+    <screenshot>https://cdn.jsdelivr.net/gh/nmarafo/nextcloud-secure-office@main/screenshots/06_delegated_director_dashboard.png</screenshot>
+    <screenshot>https://cdn.jsdelivr.net/gh/nmarafo/nextcloud-secure-office@main/screenshots/08_granular_file_matrix.png</screenshot>
+    <screenshot>https://cdn.jsdelivr.net/gh/nmarafo/nextcloud-secure-office@main/screenshots/09_file_search_predictive.png</screenshot>
     <dependencies>
         <nextcloud min-version="33" max-version="33" />
     </dependencies>

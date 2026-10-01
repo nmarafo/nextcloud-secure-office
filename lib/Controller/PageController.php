@@ -92,7 +92,7 @@ class PageController extends Controller {
         return new DataResponse([
             'app' => 'secure_office',
             'status' => 'ok',
-            'version' => '0.5.0',
+            'version' => '0.5.1',
             'compliance' => 'ENS RD 311/2022',
             'policies' => $this->configService->getAllPolicies(),
         ]);
