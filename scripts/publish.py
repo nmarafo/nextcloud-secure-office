@@ -53,12 +53,13 @@ def main():
             cert_text = json.load(f).get("certificate")
 
     # 4. Hash files and create code integrity signature.json
+    excluded_dirs = [".git", ".github", "screenshots", "scripts", "certificates", "video_assets", "__pycache__"]
     file_hashes = {}
     for root, dirs, files in os.walk("."):
-        if any(x in root for x in [".git", ".github", "screenshots", "scripts", "certificates", "video_assets"]):
+        if any(x in root.replace("\\", "/").split("/") for x in excluded_dirs):
             continue
         for f in files:
-            if f.startswith("."):
+            if f.startswith(".") or f.startswith("test_") or f.endswith(".tar.gz") or f.endswith(".pyc"):
                 continue
             rel = os.path.relpath(os.path.join(root, f), ".").replace("\\", "/")
             if rel in ["appinfo/signature.json", "secure_office.tar.gz"]:
@@ -95,10 +96,10 @@ def main():
 
     with tarfile.open(tar_path, "w:gz") as tar:
         for root, dirs, files in os.walk("."):
-            if any(x in root for x in [".git", ".github", "screenshots", "scripts", "certificates", "video_assets"]):
+            if any(x in root.replace("\\", "/").split("/") for x in excluded_dirs):
                 continue
             for f in files:
-                if f.startswith("."):
+                if f.startswith(".") or f.startswith("test_") or f.endswith(".tar.gz") or f.endswith(".pyc"):
                     continue
                 full_p = os.path.join(root, f)
                 rel_p = os.path.relpath(full_p, ".").replace("\\", "/")

@@ -293,25 +293,42 @@ class FileSecurityService {
             $globalDownload
         );
 
-        // Clasificación personalizada
+        // Clasificación personalizada (Prioridad: 1. Usuario -> 2. Grupo -> 3. Todos (*) -> 4. Global)
         $classification = $globalClassification;
         if ($userRule !== null && !empty($userRule['classification'])) {
             $classification = (string)$userRule['classification'];
-        } elseif ($allRule !== null && !empty($allRule['classification'])) {
-            $classification = (string)$allRule['classification'];
         } elseif (!empty($matchedGroupRules)) {
+            $foundGroupClass = false;
             foreach ($matchedGroupRules as $gr) {
                 if (!empty($gr['classification'])) {
                     $classification = (string)$gr['classification'];
+                    $foundGroupClass = true;
                     break;
                 }
             }
+            if (!$foundGroupClass && $allRule !== null && !empty($allRule['classification'])) {
+                $classification = (string)$allRule['classification'];
+            }
+        } elseif ($allRule !== null && !empty($allRule['classification'])) {
+            $classification = (string)$allRule['classification'];
         }
 
-        // Marca de agua personalizada
+        // Marca de agua personalizada (Prioridad: 1. Usuario -> 2. Grupo -> 3. Todos (*) -> 4. Global)
         $watermark = $globalWatermark;
         if ($userRule !== null && !empty($userRule['watermark_custom'])) {
             $watermark = (string)$userRule['watermark_custom'];
+        } elseif (!empty($matchedGroupRules)) {
+            $foundGroupWm = false;
+            foreach ($matchedGroupRules as $gr) {
+                if (!empty($gr['watermark_custom'])) {
+                    $watermark = (string)$gr['watermark_custom'];
+                    $foundGroupWm = true;
+                    break;
+                }
+            }
+            if (!$foundGroupWm && $allRule !== null && !empty($allRule['watermark_custom'])) {
+                $watermark = (string)$allRule['watermark_custom'];
+            }
         } elseif ($allRule !== null && !empty($allRule['watermark_custom'])) {
             $watermark = (string)$allRule['watermark_custom'];
         }
@@ -338,6 +355,7 @@ class FileSecurityService {
 
     /**
      * Búsqueda de archivos en oc_filecache para autocompletado y selección en la UI.
+     * Soporta directorios personales (home::*) y Carpetas de Grupo (__groupfolders/*).
      */
     public function searchFiles(string $pattern, int $limit = 20): array {
         $pattern = trim($pattern);
@@ -346,27 +364,68 @@ class FileSecurityService {
         }
 
         $qb = $this->db->getQueryBuilder();
-        $qb->select('fileid', 'path', 'name', 'mimetype', 'size')
-            ->from('filecache')
+        $qb->select('f.fileid', 'f.path', 'f.name', 'f.mimetype', 'f.size', 's.id AS storage_id', 'm.mimetype AS mime_str')
+            ->from('filecache', 'f')
+            ->leftJoin('f', 'storages', 's', $qb->expr()->eq('f.storage', 's.numeric_id'))
+            ->leftJoin('f', 'mimetypes', 'm', $qb->expr()->eq('f.mimetype', 'm.id'))
             ->where(
                 $qb->expr()->andX(
-                    $qb->expr()->like('path', $qb->createNamedParameter('files/%')),
-                    $qb->expr()->notLike('path', $qb->createNamedParameter('files_encryption/%')),
-                    $qb->expr()->neq('mimetype', $qb->createNamedParameter('httpd/unix-directory')),
                     $qb->expr()->orX(
-                        $qb->expr()->like('name', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($pattern) . '%')),
-                        $qb->expr()->like('path', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($pattern) . '%'))
+                        $qb->expr()->like('f.path', $qb->createNamedParameter('files/%')),
+                        $qb->expr()->like('f.path', $qb->createNamedParameter('__groupfolders/%'))
+                    ),
+                    $qb->expr()->notLike('f.path', $qb->createNamedParameter('files_encryption/%')),
+                    $qb->expr()->notLike('f.path', $qb->createNamedParameter('files_trashbin/%')),
+                    $qb->expr()->notLike('f.path', $qb->createNamedParameter('files_versions/%')),
+                    $qb->expr()->orX(
+                        $qb->expr()->like('f.name', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($pattern) . '%')),
+                        $qb->expr()->like('f.path', $qb->createNamedParameter('%' . $this->db->escapeLikeParameter($pattern) . '%'))
                     )
                 )
             )
-            ->orderBy('mtime', 'DESC')
-            ->setMaxResults($limit);
+            ->orderBy('f.mtime', 'DESC')
+            ->setMaxResults($limit * 2);
 
-        $files = $qb->executeQuery()->fetchAllAssociative();
-        return array_values(array_filter($files, function(array $f): bool {
+        $rows = $qb->executeQuery()->fetchAllAssociative();
+        $results = [];
+        foreach ($rows as $f) {
+            $mimeStr = (string)($f['mime_str'] ?? '');
+            if ($mimeStr === 'httpd/unix-directory') {
+                continue;
+            }
             $p = (string)($f['path'] ?? '');
-            return str_starts_with($p, 'files/') && !str_starts_with($p, 'files_encryption/');
-        }));
+            if (!str_starts_with($p, 'files/') && !str_starts_with($p, '__groupfolders/')) {
+                continue;
+            }
+            if (str_starts_with($p, 'files_encryption/')) {
+                continue;
+            }
+
+            $storageId = (string)($f['storage_id'] ?? '');
+            $displayPath = $p;
+            if (str_starts_with($storageId, 'home::')) {
+                $ownerUid = substr($storageId, 6);
+                if ($ownerUid !== '') {
+                    $displayPath = '/' . $ownerUid . '/' . ltrim($p, '/');
+                }
+            } elseif (!str_starts_with($displayPath, '/')) {
+                $displayPath = '/' . $displayPath;
+            }
+
+            $results[] = [
+                'fileid' => $f['fileid'],
+                'path' => $displayPath,
+                'name' => $f['name'],
+                'mimetype' => $mimeStr !== '' ? $mimeStr : $f['mimetype'],
+                'size' => $f['size'],
+            ];
+
+            if (count($results) >= $limit) {
+                break;
+            }
+        }
+
+        return $results;
     }
 
     private function extractGroupDirectives(array $groupRules, string $key): array {

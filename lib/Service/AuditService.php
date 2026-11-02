@@ -92,13 +92,13 @@ class AuditService {
             fputcsv($output, [
                 $row['id'],
                 $row['created_at'],
-                $row['user_id'],
-                $row['remote_ip'],
+                $this->sanitizeCsvCell((string)($row['user_id'] ?? '')),
+                $this->sanitizeCsvCell((string)($row['remote_ip'] ?? '')),
                 $row['file_id'],
-                $row['file_name'],
-                $row['file_path'],
-                $row['action'] ?? 'COLLABORA_VIEW',
-                $row['classification'],
+                $this->sanitizeCsvCell((string)($row['file_name'] ?? '')),
+                $this->sanitizeCsvCell((string)($row['file_path'] ?? '')),
+                $this->sanitizeCsvCell((string)($row['action'] ?? 'COLLABORA_VIEW')),
+                $this->sanitizeCsvCell((string)($row['classification'] ?? '')),
                 $row['dlp_export_disabled'] ? 'YES' : 'NO',
                 $row['dlp_copy_disabled'] ? 'YES' : 'NO',
                 $row['dlp_print_disabled'] ? 'YES' : 'NO',
@@ -110,5 +110,15 @@ class AuditService {
         fclose($output);
 
         return $csv ?: '';
+    }
+
+    /**
+     * Previene inyección de fórmulas (CSV Injection) en visores de hojas de cálculo (Excel / LibreOffice Calc).
+     */
+    private function sanitizeCsvCell(string $value): string {
+        if ($value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            return "'" . $value;
+        }
+        return $value;
     }
 }

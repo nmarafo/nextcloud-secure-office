@@ -39,17 +39,18 @@ class PageController extends Controller {
     #[NoCSRFRequired]
     public function index(): TemplateResponse {
         Util::addTranslations('secure_office');
-        Util::addScript('secure_office', 'admin');
         $user = $this->userSession->getUser();
         $userId = $user ? $user->getUID() : 'anonymous';
         $canManage = $this->configService->canUserManagePolicies($userId);
 
         if ($canManage) {
+            Util::addScript('secure_office', 'admin');
             $policies = $this->configService->getAllPolicies();
             $diagnostics = $this->diagnosticService->runDiagnostics();
             $recentAudit = $this->auditService->getRecentAuditEntries(15);
             $totalAudit = $this->auditService->countEntries();
             $fileRules = $this->fileSecurityService->getAllRules(50);
+            $isAdmin = ($userId !== 'anonymous') && $this->groupManager->isAdmin($userId);
 
             $groups = $this->groupManager->search('');
             $availableGroups = [];
@@ -70,7 +71,7 @@ class PageController extends Controller {
                     'totalAudit' => $totalAudit,
                     'availableGroups' => $availableGroups,
                     'fileRules' => $fileRules,
-                    'isDelegatedView' => true,
+                    'isDelegatedView' => !$isAdmin,
                 ]
             );
         }
@@ -83,18 +84,27 @@ class PageController extends Controller {
             'userCanPrint' => $this->configService->isUserAllowedToPrint($userId),
             'userCanCopy' => $this->configService->isUserAllowedToCopy($userId),
             'userCanDownloadNative' => $this->configService->isUserAllowedToDownloadNative($userId),
+            'watermarkActive' => $this->configService->isCollaboraProtectionEnabled() && $this->configService->isWatermarkEnabled(),
         ]);
     }
 
     #[PublicPage]
     #[NoCSRFRequired]
     public function status(): DataResponse {
-        return new DataResponse([
+        $user = $this->userSession->getUser();
+        $userId = $user ? $user->getUID() : 'anonymous';
+
+        $payload = [
             'app' => 'secure_office',
             'status' => 'ok',
-            'version' => '0.5.1',
+            'version' => '0.5.2',
             'compliance' => 'ENS RD 311/2022',
-            'policies' => $this->configService->getAllPolicies(),
-        ]);
+        ];
+
+        if ($this->configService->canUserManagePolicies($userId)) {
+            $payload['policies'] = $this->configService->getAllPolicies();
+        }
+
+        return new DataResponse($payload);
     }
 }

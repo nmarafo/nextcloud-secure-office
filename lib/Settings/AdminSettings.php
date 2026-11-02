@@ -26,6 +26,7 @@ class AdminSettings implements ISettings {
     #[\Override]
     public function getForm(): TemplateResponse {
         Util::addTranslations('secure_office');
+        Util::addScript('secure_office', 'admin');
         $policies = $this->configService->getAllPolicies();
         $diagnostics = $this->diagnosticService->runDiagnostics();
         $recentAudit = $this->auditService->getRecentAuditEntries(15);
@@ -51,6 +52,7 @@ class AdminSettings implements ISettings {
                 'totalAudit' => $totalAudit,
                 'availableGroups' => $availableGroups,
                 'fileRules' => $fileRules,
+                'isDelegatedView' => false,
             ],
             'blank'
         );

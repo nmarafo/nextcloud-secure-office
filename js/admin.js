@@ -6,6 +6,10 @@
 (function() {
     'use strict';
 
+    function tr(text) {
+        return (typeof t === 'function') ? t('secure_office', text) : text;
+    }
+
     function escapeHtml(text) {
         if (!text) return '';
         return String(text).replace(/[&<>"']/g, function(m) {
@@ -68,7 +72,7 @@
                     });
                     resultsBox.style.display = 'block';
                 } else {
-                    resultsBox.innerHTML = '<div style="padding:8px 12px; color:#64748b; font-size:0.85em; font-style:italic;">No se encontraron archivos en oc_filecache</div>';
+                    resultsBox.innerHTML = '<div style="padding:8px 12px; color:#64748b; font-size:0.85em; font-style:italic;">' + escapeHtml(tr('No matching files found in oc_filecache.')) + '</div>';
                     resultsBox.style.display = 'block';
                 }
             })
@@ -86,7 +90,7 @@
 
         btn.disabled = true;
         msg.style.color = '#0082c9';
-        msg.innerText = (typeof t === 'function') ? t('secure_office', 'Saving policies...') : 'Guardando directivas...';
+        msg.innerText = tr('Saving policies...');
 
         const getCheckedGroups = (name) => {
             const checkboxes = document.querySelectorAll('input[name="' + name + '[]"]:checked');
@@ -128,13 +132,13 @@
                 setTimeout(() => { msg.innerText = ''; }, 4000);
             } else {
                 msg.style.color = '#dc3545';
-                msg.innerText = (data && data.message) ? data.message : 'Error al guardar configuración.';
+                msg.innerText = (data && data.message) ? data.message : tr('Error saving configuration.');
             }
         })
         .catch(err => {
             btn.disabled = false;
             msg.style.color = '#dc3545';
-            msg.innerText = 'Error de conexión con el servidor.';
+            msg.innerText = tr('Server connection error.');
             console.error(err);
         });
 
@@ -150,22 +154,23 @@
         if (targetType === 'user') {
             targetId = document.getElementById('sec_rule_user_id').value.trim();
             if (!targetId) {
-                alert('Por favor, indique el identificador del usuario.');
+                alert(tr('Please specify the user identifier.'));
                 return;
             }
         } else if (targetType === 'group') {
             targetId = document.getElementById('sec_rule_group_id').value;
             if (!targetId) {
-                alert('Por favor, seleccione un grupo.');
+                alert(tr('Please select a group.'));
                 return;
             }
         }
 
         if (!fileId || isNaN(fileId) || fileId <= 0) {
-            alert('Por favor, indique un ID de archivo válido.');
+            alert(tr('Please specify a valid File ID.'));
             return;
         }
 
+        const wmCustomInput = document.getElementById('sec_rule_watermark_custom');
         const payload = {
             file_id: fileId,
             file_name: fileName || 'document',
@@ -176,14 +181,15 @@
             dlp_print: parseInt(document.getElementById('sec_rule_dlp_print').value, 10),
             dlp_copy: parseInt(document.getElementById('sec_rule_dlp_copy').value, 10),
             dlp_download: parseInt(document.getElementById('sec_rule_dlp_download').value, 10),
-            classification: document.getElementById('sec_rule_classification').value.trim()
+            classification: document.getElementById('sec_rule_classification').value.trim(),
+            watermark_custom: wmCustomInput ? wmCustomInput.value.trim() : ''
         };
 
         const btn = document.getElementById('btn-save-file-rule');
         const msg = document.getElementById('file-rule-status-msg');
         btn.disabled = true;
         msg.style.color = '#0082c9';
-        msg.innerText = (typeof t === 'function') ? t('secure_office', 'Saving rule...') : 'Guardando regla...';
+        msg.innerText = tr('Saving rule...');
 
         fetch(OC.generateUrl('/apps/secure_office/api/v1/file-rules'), {
             method: 'POST',
@@ -203,19 +209,19 @@
                 renderFileRulesTable(data.rules);
             } else {
                 msg.style.color = '#dc3545';
-                msg.innerText = (data && data.message) ? data.message : 'Error al guardar regla.';
+                msg.innerText = (data && data.message) ? data.message : tr('Error saving rule.');
             }
         })
         .catch(err => {
             btn.disabled = false;
             msg.style.color = '#dc3545';
-            msg.innerText = 'Error de conexión con el servidor.';
+            msg.innerText = tr('Server connection error.');
             console.error(err);
         });
     }
 
     function deleteGranularFileRule(ruleId) {
-        if (!confirm('¿Desea eliminar esta regla de archivo?')) {
+        if (!confirm(tr('Are you sure you want to delete this file rule?'))) {
             return;
         }
 
@@ -230,11 +236,11 @@
             if (data && data.status === 'success') {
                 renderFileRulesTable(data.rules);
             } else {
-                alert((data && data.message) ? data.message : 'Error al eliminar regla.');
+                alert((data && data.message) ? data.message : tr('Failed to delete rule.'));
             }
         })
         .catch(err => {
-            alert('Error de conexión con el servidor.');
+            alert(tr('Server connection error.'));
             console.error(err);
         });
     }
@@ -243,26 +249,26 @@
         const tbody = document.getElementById('file-rules-tbody');
         const countBadge = document.getElementById('file-rules-count');
         if (countBadge) {
-            countBadge.innerText = rules.length;
+            countBadge.innerText = rules ? rules.length : 0;
         }
 
         if (!tbody) return;
 
         if (!rules || rules.length === 0) {
-            tbody.innerHTML = '<tr id="no-file-rules-row"><td colspan="8" style="padding:12px; text-align:center; color:#64748b; font-style:italic;">No hay reglas específicas configuradas. Aplican las políticas globales.</td></tr>';
+            tbody.innerHTML = '<tr id="no-file-rules-row"><td colspan="8" style="padding:12px; text-align:center; color:#64748b; font-style:italic;">' + escapeHtml(tr('No specific file or user rules configured yet. Global policies apply.')) + '</td></tr>';
             return;
         }
 
         const renderPermBadge = (val) => {
             val = parseInt(val, 10);
-            if (val === 1) return '<span style="color:#16a34a; font-weight:bold;">✓ Permitir</span>';
-            if (val === -1) return '<span style="color:#dc2626; font-weight:bold;">⛔ Bloquear</span>';
-            return '<span style="color:#64748b;">Heredar</span>';
+            if (val === 1) return '<span style="color:#16a34a; font-weight:bold;">✓ ' + escapeHtml(tr('Allow')) + '</span>';
+            if (val === -1) return '<span style="color:#dc2626; font-weight:bold;">⛔ ' + escapeHtml(tr('Block')) + '</span>';
+            return '<span style="color:#64748b;">' + escapeHtml(tr('Inherit')) + '</span>';
         };
 
         let html = '';
         rules.forEach(r => {
-            let badgeTarget = '🌐 Todos (*)';
+            let badgeTarget = '🌐 ' + escapeHtml(tr('All (*)'));
             if (r.target_type === 'user') {
                 badgeTarget = '👤 ' + escapeHtml(r.target_id);
             } else if (r.target_type === 'group') {
@@ -276,8 +282,8 @@
             html += '<td style="padding:8px 10px; text-align:center;">' + renderPermBadge(r.dlp_print) + '</td>';
             html += '<td style="padding:8px 10px; text-align:center;">' + renderPermBadge(r.dlp_copy) + '</td>';
             html += '<td style="padding:8px 10px; text-align:center;">' + renderPermBadge(r.dlp_download) + '</td>';
-            html += '<td style="padding:8px 10px;"><span style="font-size:0.85em; color:#475569;">' + escapeHtml(r.classification || '(Heredada)') + '</span></td>';
-            html += '<td style="padding:8px 10px; text-align:center;"><button type="button" class="button delete-rule-btn" data-rule-id="' + r.id + '" style="color:#dc2626; padding:2px 6px; font-size:0.8em;">🗑️ Eliminar</button></td>';
+            html += '<td style="padding:8px 10px;"><span style="font-size:0.85em; color:#475569;">' + escapeHtml(r.classification || tr('(Inherited)')) + '</span></td>';
+            html += '<td style="padding:8px 10px; text-align:center;"><button type="button" class="button delete-rule-btn" data-rule-id="' + r.id + '" style="color:#dc2626; padding:2px 6px; font-size:0.8em;">🗑️ ' + escapeHtml(tr('Delete')) + '</button></td>';
             html += '</tr>';
         });
 
@@ -290,6 +296,41 @@
 
     // Attach listeners on DOM ready
     function init() {
+        const settingsForm = document.getElementById('secure-office-settings-form');
+        if (settingsForm) {
+            settingsForm.addEventListener('submit', saveSecureOfficeSettings);
+        }
+
+        const saveSettingsBtn = document.getElementById('btn-save-settings');
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', saveSecureOfficeSettings);
+        }
+
+        const collabToggle = document.getElementById('sec_collabora_protection_enabled');
+        const collabSub = document.getElementById('collabora-suboptions');
+        if (collabToggle && collabSub) {
+            collabToggle.addEventListener('change', () => {
+                collabSub.style.opacity = collabToggle.checked ? '1' : '0.4';
+            });
+        }
+
+        const nativeToggle = document.getElementById('sec_native_protection_enabled');
+        const nativeSub = document.getElementById('native-suboptions');
+        if (nativeToggle && nativeSub) {
+            nativeToggle.addEventListener('change', () => {
+                nativeSub.style.opacity = nativeToggle.checked ? '1' : '0.4';
+            });
+        }
+
+        document.querySelectorAll('.sec-group-checkbox').forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (cb.parentElement) {
+                    cb.parentElement.style.background = cb.checked ? '#e0f2fe' : '#f1f5f9';
+                    cb.parentElement.style.borderColor = cb.checked ? '#0284c7' : '#cbd5e1';
+                }
+            });
+        });
+
         const searchInput = document.getElementById('sec_rule_file_search');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => debounceFileSearch(e.target.value));
@@ -298,11 +339,6 @@
         const targetTypeSelect = document.getElementById('sec_rule_target_type');
         if (targetTypeSelect) {
             targetTypeSelect.addEventListener('change', (e) => toggleTargetTypeFields(e.target.value));
-        }
-
-        const saveSettingsBtn = document.getElementById('btn-save-settings');
-        if (saveSettingsBtn) {
-            saveSettingsBtn.addEventListener('click', saveSecureOfficeSettings);
         }
 
         const saveFileRuleBtn = document.getElementById('btn-save-file-rule');

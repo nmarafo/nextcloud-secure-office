@@ -39,6 +39,13 @@ class SettingsApiController extends Controller {
     #[NoAdminRequired]
     #[NoCSRFRequired]
     public function updateSettings(): DataResponse {
+        if (!$this->isValidRequestAuth()) {
+            return new DataResponse([
+                'status' => 'error',
+                'message' => $this->l10n->t('Invalid CSRF token.'),
+            ], Http::STATUS_PRECONDITION_FAILED);
+        }
+
         $user = $this->userSession->getUser();
         $userId = $user ? $user->getUID() : 'anonymous';
 
@@ -169,13 +176,16 @@ class SettingsApiController extends Controller {
         }
 
         // --- Gestión Delegada ENS / Responsable de la Información ---
-        $delegatedGroups = $this->formatGroupList($this->resolveParam('delegated_admin_groups'));
-        if ($delegatedGroups !== null) {
-            $this->config->setAppValue(
-                SecurityConfigService::APP_ID,
-                'delegated_admin_groups',
-                $delegatedGroups
-            );
+        // Solo los administradores de sistemas pueden modificar qué grupos ostentan la delegación [org.1], [mp.ac.3]
+        if ($this->groupManager->isAdmin($userId)) {
+            $delegatedGroups = $this->formatGroupList($this->resolveParam('delegated_admin_groups'));
+            if ($delegatedGroups !== null) {
+                $this->config->setAppValue(
+                    SecurityConfigService::APP_ID,
+                    'delegated_admin_groups',
+                    $delegatedGroups
+                );
+            }
         }
 
         // --- Clasificación Global ---
@@ -236,6 +246,13 @@ class SettingsApiController extends Controller {
     #[NoAdminRequired]
     #[NoCSRFRequired]
     public function saveFileRule(): DataResponse {
+        if (!$this->isValidRequestAuth()) {
+            return new DataResponse([
+                'status' => 'error',
+                'message' => $this->l10n->t('Invalid CSRF token.'),
+            ], Http::STATUS_PRECONDITION_FAILED);
+        }
+
         $user = $this->userSession->getUser();
         $userId = $user ? $user->getUID() : 'anonymous';
 
@@ -321,6 +338,13 @@ class SettingsApiController extends Controller {
     #[NoAdminRequired]
     #[NoCSRFRequired]
     public function deleteFileRule(int $ruleId): DataResponse {
+        if (!$this->isValidRequestAuth()) {
+            return new DataResponse([
+                'status' => 'error',
+                'message' => $this->l10n->t('Invalid CSRF token.'),
+            ], Http::STATUS_PRECONDITION_FAILED);
+        }
+
         $user = $this->userSession->getUser();
         $userId = $user ? $user->getUID() : 'anonymous';
 
@@ -425,18 +449,42 @@ class SettingsApiController extends Controller {
 
     #[NoAdminRequired]
     #[NoCSRFRequired]
-    public function exportAudit(): DataDownloadResponse {
+    public function exportAudit(): DataDownloadResponse|DataResponse {
         $user = $this->userSession->getUser();
         $userId = $user ? $user->getUID() : 'anonymous';
 
         if (!$this->configService->canUserManagePolicies($userId)) {
-            throw new \OCP\HintException('No autorizado para exportar registros de auditoría ENS.');
+            return new DataResponse([
+                'status' => 'error',
+                'message' => $this->l10n->t('Unauthorized.'),
+            ], Http::STATUS_FORBIDDEN);
         }
 
         $csv = $this->auditService->exportCsv();
         $fileName = 'nextcloud_secure_office_audit_' . date('Ymd_His') . '.csv';
 
         return new DataDownloadResponse($csv, $fileName, 'text/csv');
+    }
+
+    /**
+     * Verifica que las peticiones de escritura incluyan un token CSRF válido de sesión web
+     * o bien cabeceras explícitas de autenticación API (Basic/Bearer u OCS-APIRequest).
+     */
+    private function isValidRequestAuth(): bool {
+        if ($this->request->passesCSRFCheck()) {
+            return true;
+        }
+        if ($this->request->getHeader('OCS-APIRequest') === 'true') {
+            return true;
+        }
+        $authHeader = $this->request->getHeader('Authorization');
+        if ($authHeader !== '' && (str_starts_with($authHeader, 'Basic ') || str_starts_with($authHeader, 'Bearer '))) {
+            return true;
+        }
+        if (!empty($_SERVER['PHP_AUTH_USER']) || !empty($_SERVER['HTTP_AUTHORIZATION'])) {
+            return true;
+        }
+        return false;
     }
 
     private function formatGroupList(mixed $val): ?string {

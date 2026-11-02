@@ -51,6 +51,11 @@ class NativeFileAccessListener implements IEventListener {
             return;
         }
 
+        // Excluir flujos internos de Collabora Online (WOPI) y generación de vistas previas controladas
+        if ($this->isWopiOrPreviewRequest()) {
+            return;
+        }
+
         $node = $event->getNode();
         if (!($node instanceof File)) {
             return;
@@ -207,6 +212,39 @@ class NativeFileAccessListener implements IEventListener {
 
         foreach ($ignoredPatterns as $pattern) {
             if (str_contains($path, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determina si la lectura de nodo actual corresponde a una transferencia interna WOPI de Collabora Online
+     * (que ya es gobernada por WopiSecurityMiddleware y auditada por DocumentOpenedListener)
+     * o a la generación de una previsualización/miniatura controlada en la interfaz.
+     */
+    private function isWopiOrPreviewRequest(): bool {
+        try {
+            $uri = $this->request->getRequestUri();
+        } catch (\Throwable) {
+            $uri = $_SERVER['REQUEST_URI'] ?? '';
+        }
+
+        if ($uri === '') {
+            return false;
+        }
+
+        $exemptUriPatterns = [
+            '/wopi/files/',
+            '/richdocuments/',
+            '/core/preview',
+            '/api/v1/thumbnail/',
+            '/dav/avatars/',
+        ];
+
+        foreach ($exemptUriPatterns as $pattern) {
+            if (str_contains($uri, $pattern)) {
                 return true;
             }
         }

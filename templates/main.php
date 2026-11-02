@@ -48,8 +48,20 @@
                         <?php endif; ?>
                     </li>
                     <li>
+                        <strong><?php p($l->t('Viewer clipboard copy permission:')); ?></strong>
+                        <?php if ($_['userCanCopy']): ?>
+                            <span style="color:#16a34a; font-weight:600;"><?php p($l->t('✓ Authorized')); ?></span>
+                        <?php else: ?>
+                            <span style="color:#dc2626; font-weight:600;"><?php p($l->t('⛔ Restricted by ENS policy [mp.info.6]')); ?></span>
+                        <?php endif; ?>
+                    </li>
+                    <li>
                         <strong><?php p($l->t('Forensic watermark:')); ?></strong>
-                        <span style="color:#0284c7; font-weight:600;"><?php p($l->t('Active in document viewer with your user and IP')); ?></span>
+                        <?php if ($_['watermarkActive'] ?? true): ?>
+                            <span style="color:#0284c7; font-weight:600;"><?php p($l->t('Active in document viewer with your user and IP')); ?></span>
+                        <?php else: ?>
+                            <span style="color:#64748b; font-weight:600;"><?php p($l->t('Disabled')); ?></span>
+                        <?php endif; ?>
                     </li>
                 </ul>
             </div>

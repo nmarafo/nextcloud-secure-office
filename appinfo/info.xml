@@ -59,7 +59,7 @@ Key Capabilities:
 
 5. Granular File & File × User Matrix
 • Per-File & Per-User Policies: Define custom export, print, copy, and download rules for specific documents or specific user/group combinations overriding general rules.]]></description>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
     <licence>agpl</licence>
     <author mail="normaafo@gmail.com">Norberto Martín Afonso</author>
     <namespace>SecureOffice</namespace>

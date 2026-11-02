@@ -63,9 +63,10 @@ class WopiSecurityMiddleware extends Middleware {
         $data['HidePrintOption'] = !$perms['can_print'];
 
         // Apply Dynamic Forensic Watermarking
+        $watermarkText = '';
+        $userIp = $this->request->getRemoteAddress();
         if ($this->configService->isWatermarkEnabled()) {
             $userDisplayName = (string)($data['UserFriendlyName'] ?? $userId);
-            $userIp = $this->request->getRemoteAddress();
             $date = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s \U\T\C');
             $classification = $perms['classification'];
 
@@ -80,23 +81,23 @@ class WopiSecurityMiddleware extends Middleware {
 
             $watermarkText = strtr($template, $replacements);
             $data['WatermarkText'] = $watermarkText;
-
-            $this->logger->info(
-                'Secure Office: Evaluated granular DLP policies for user {userId} on {fileName} [fileId: {fileId}, export: {export}, print: {print}, copy: {copy}, source: {source}]',
-                [
-                    'app' => SecurityConfigService::APP_ID,
-                    'fileId' => $fileId,
-                    'userId' => $userId,
-                    'userIp' => $userIp,
-                    'fileName' => $data['BaseFileName'] ?? 'unknown',
-                    'watermark' => $watermarkText,
-                    'export' => $perms['can_export'] ? 'allowed' : 'blocked',
-                    'print' => $perms['can_print'] ? 'allowed' : 'blocked',
-                    'copy' => $perms['can_copy'] ? 'allowed' : 'blocked',
-                    'source' => $perms['rule_source'],
-                ]
-            );
         }
+
+        $this->logger->info(
+            'Secure Office: Evaluated granular DLP policies for user {userId} on {fileName} [fileId: {fileId}, export: {export}, print: {print}, copy: {copy}, source: {source}]',
+            [
+                'app' => SecurityConfigService::APP_ID,
+                'fileId' => $fileId,
+                'userId' => $userId,
+                'userIp' => $userIp,
+                'fileName' => $data['BaseFileName'] ?? 'unknown',
+                'watermark' => $watermarkText !== '' ? $watermarkText : 'disabled',
+                'export' => $perms['can_export'] ? 'allowed' : 'blocked',
+                'print' => $perms['can_print'] ? 'allowed' : 'blocked',
+                'copy' => $perms['can_copy'] ? 'allowed' : 'blocked',
+                'source' => $perms['rule_source'],
+            ]
+        );
 
         $response->setData($data);
         return $response;

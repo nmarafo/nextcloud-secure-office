@@ -17,7 +17,7 @@ $badgeColor = match ($overallStatus) {
 };
 
 // Helper inline para renderizar checkboxes de grupos
-$renderGroupCheckboxes = function(string $name, array $selectedGroups, array $allGroups) use ($l) {
+$renderGroupCheckboxes = function(string $name, array $selectedGroups, array $allGroups, bool $disabled = false) use ($l) {
     ?>
     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; margin-bottom:12px;">
         <?php foreach ($allGroups as $g): ?>
@@ -26,8 +26,8 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
                 $gname = $g['name'];
                 $isChecked = in_array($gid, $selectedGroups, true);
             ?>
-            <label style="display:inline-flex; align-items:center; gap:6px; background:<?php echo $isChecked ? '#e0f2fe' : '#f1f5f9'; ?>; border:1px solid <?php echo $isChecked ? '#0284c7' : '#cbd5e1'; ?>; padding:4px 10px; border-radius:14px; font-size:0.85em; cursor:pointer; user-select:none; transition:all 0.15s ease;">
-                <input type="checkbox" name="<?php p($name); ?>[]" value="<?php p($gid); ?>" <?php if ($isChecked) print_unescaped('checked'); ?> style="margin:0; cursor:pointer;" onchange="this.parentElement.style.background=this.checked?'#e0f2fe':'#f1f5f9'; this.parentElement.style.borderColor=this.checked?'#0284c7':'#cbd5e1';">
+            <label style="display:inline-flex; align-items:center; gap:6px; background:<?php echo $isChecked ? '#e0f2fe' : '#f1f5f9'; ?>; border:1px solid <?php echo $isChecked ? '#0284c7' : '#cbd5e1'; ?>; padding:4px 10px; border-radius:14px; font-size:0.85em; cursor:<?php echo $disabled ? 'not-allowed' : 'pointer'; ?>; opacity:<?php echo $disabled ? '0.75' : '1'; ?>; user-select:none; transition:all 0.15s ease;">
+                <input type="checkbox" class="sec-group-checkbox" name="<?php p($name); ?>[]" value="<?php p($gid); ?>" <?php if ($isChecked) print_unescaped('checked'); ?> <?php if ($disabled) print_unescaped('disabled'); ?> style="margin:0; cursor:<?php echo $disabled ? 'not-allowed' : 'pointer'; ?>;">
                 <span><strong><?php p($gname); ?></strong> (<code><?php p($gid); ?></code>)</span>
             </label>
         <?php endforeach; ?>
@@ -120,7 +120,7 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
             <?php p($l->t('Security and DLP Policy Configuration')); ?>
         </h3>
 
-        <form id="secure-office-settings-form" onsubmit="return saveSecureOfficeSettings(event);">
+        <form id="secure-office-settings-form">
             <!-- Clasificación Global ENS -->
             <div style="margin-bottom:20px; background:#f8fafc; border-left:4px solid #0284c7; padding:12px 16px; border-radius:0 6px 6px 0;">
                 <label for="sec_classification" style="font-weight:bold; display:block; margin-bottom:4px;">
@@ -140,13 +140,18 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
                 <span class="settings-hint" style="display:block; margin-bottom:8px;">
                     <?php p($l->t('Select user groups that represent the Information Owner (e.g. School Direction, Department Heads). Members can manage these DLP policies without needing full IT superadmin privileges:')); ?>
                 </span>
-                <?php $renderGroupCheckboxes('delegated_admin_groups', $policies['delegated_admin_groups'] ?? [], $availableGroups); ?>
+                <?php $renderGroupCheckboxes('delegated_admin_groups', $policies['delegated_admin_groups'] ?? [], $availableGroups, (bool)$isDelegatedView); ?>
+                <?php if ($isDelegatedView): ?>
+                    <span class="settings-hint" style="display:block; font-size:0.8em; color:#15803d;">
+                        🔒 <?php p($l->t('Only IT System Administrators can modify which groups hold the delegated Information Owner role ([mp.ac.3]).')); ?>
+                    </span>
+                <?php endif; ?>
             </div>
 
             <!-- Módulo 1: Collabora Online -->
             <div style="margin-bottom:24px; border:1px solid #e2e8f0; border-radius:6px; padding:16px;">
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                    <input type="checkbox" id="sec_collabora_protection_enabled" name="collabora_protection_enabled" value="yes" <?php if ($policies['collabora_protection_enabled']) print_unescaped('checked'); ?> onchange="document.getElementById('collabora-suboptions').style.opacity = this.checked ? '1' : '0.4';">
+                    <input type="checkbox" id="sec_collabora_protection_enabled" name="collabora_protection_enabled" value="yes" <?php if ($policies['collabora_protection_enabled']) print_unescaped('checked'); ?>>
                     <label for="sec_collabora_protection_enabled" style="font-size:1.05em; font-weight:bold; color:#1e293b;">
                         <?php p($l->t('Module 1: Protection in Collaborative Office (Collabora Online / CODE)')); ?>
                     </label>
@@ -214,7 +219,7 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
             <!-- Módulo 2: Archivos Nativos -->
             <div style="margin-bottom:20px; border:1px solid #e2e8f0; border-radius:6px; padding:16px;">
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                    <input type="checkbox" id="sec_native_protection_enabled" name="native_protection_enabled" value="yes" <?php if ($policies['native_protection_enabled']) print_unescaped('checked'); ?> onchange="document.getElementById('native-suboptions').style.opacity = this.checked ? '1' : '0.4';">
+                    <input type="checkbox" id="sec_native_protection_enabled" name="native_protection_enabled" value="yes" <?php if ($policies['native_protection_enabled']) print_unescaped('checked'); ?>>
                     <label for="sec_native_protection_enabled" style="font-size:1.05em; font-weight:bold; color:#1e293b;">
                         <?php p($l->t('Module 2: Protection and Traceability of Native Files (Nextcloud Files)')); ?>
                     </label>
@@ -315,13 +320,18 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
                     </div>
                 </div>
 
-                <!-- Clasificación ENS específica (opcional) -->
+                <!-- Clasificación ENS y Marca de Agua específica (opcional) -->
                 <div>
                     <label for="sec_rule_classification" style="display:block; font-weight:600; font-size:0.85em; margin-bottom:4px;">
                         <?php p($l->t('Specific Classification (optional):')); ?>
                     </label>
                     <input type="text" id="sec_rule_classification" placeholder="<?php p($l->t('e.g. CONFIDENCIAL - EVALUACIONES')); ?>" style="width:100%; box-sizing:border-box;">
-                    <span class="settings-hint" style="font-size:0.75em;"><?php p($l->t('Leave empty to inherit general classification')); ?></span>
+                    <span class="settings-hint" style="font-size:0.75em; display:block; margin-bottom:6px;"><?php p($l->t('Leave empty to inherit general classification')); ?></span>
+
+                    <label for="sec_rule_watermark_custom" style="display:block; font-weight:600; font-size:0.85em; margin-bottom:4px;">
+                        <?php p($l->t('Custom Watermark Template (optional):')); ?>
+                    </label>
+                    <input type="text" id="sec_rule_watermark_custom" placeholder="<?php p($l->t('Leave empty to inherit global watermark template')); ?>" style="width:100%; box-sizing:border-box; font-family:monospace; font-size:0.8em;">
                 </div>
             </div>
 
@@ -375,7 +385,7 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
             </div>
 
             <div style="display:flex; align-items:center; gap:10px;">
-                <button type="button" class="button primary" id="btn-save-file-rule" onclick="saveGranularFileRule()">
+                <button type="button" class="button primary" id="btn-save-file-rule">
                     <?php p($l->t('💾 Save File Rule')); ?>
                 </button>
                 <span id="file-rule-status-msg" style="font-size:0.85em; font-weight:bold;"></span>
@@ -441,7 +451,7 @@ $renderGroupCheckboxes = function(string $name, array $selectedGroups, array $al
                                     </span>
                                 </td>
                                 <td style="padding:8px 10px; text-align:center;">
-                                    <button type="button" class="button" style="color:#dc2626; padding:2px 6px; font-size:0.8em;" onclick="deleteGranularFileRule(<?php p($r['id']); ?>)">
+                                    <button type="button" class="button delete-rule-btn" data-rule-id="<?php p($r['id']); ?>" style="color:#dc2626; padding:2px 6px; font-size:0.8em;">
                                         🗑️ <?php p($l->t('Delete')); ?>
                                     </button>
                                 </td>
